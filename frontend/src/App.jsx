@@ -1,7 +1,20 @@
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+
+function Home() {
+  return <h2>Home Page</h2>;
+}
+
+function Login() {
+  return <h2>Login Page</h2>;
+}
+
 export default function App() {
   return (
-    <div style={{ padding: "40px", fontSize: "24px" }}>
-      Food Delivery App Loaded Successfully
-    </div>
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/login" element={<Login />} />
+      </Routes>
+    </BrowserRouter>
   );
 }
