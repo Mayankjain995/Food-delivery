@@ -11,7 +11,8 @@ export default function Cart() {
     const [couponMsg, setCouponMsg] = useState({ text: "", type: "" }); // type: success/error
 
     const itemTotal = cartItems.reduce((sum, item) => {
-        const price = parseInt(item.price.replace(/[^0-9]/g, ''));
+        const priceString = item.price ? item.price.toString() : '0';
+        const price = parseInt(priceString.replace(/[^0-9]/g, '') || '0');
         return sum + (price * item.quantity);
     }, 0);
 
@@ -147,7 +148,7 @@ export default function Cart() {
                                 </div>
 
                                 <div className="font-bold text-gray-900 dark:text-white text-lg min-w-[3rem] text-right">
-                                    ₹{parseInt(item.price.replace(/[^0-9]/g, '')) * item.quantity}
+                                    ₹{item.price ? (parseInt(item.price.replace(/[^0-9]/g, '') || '0') * item.quantity) : 0}
                                 </div>
                             </div>
                         ))}
@@ -195,8 +196,8 @@ export default function Cart() {
                                 </div>
                                 {couponMsg.text && (
                                     <div className={`mt-3 text-xs font-medium p-2 rounded ${couponMsg.type === 'success'
-                                            ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
-                                            : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
+                                        ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+                                        : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
                                         }`}>
                                         {couponMsg.text}
                                     </div>
