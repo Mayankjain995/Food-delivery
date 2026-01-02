@@ -17,6 +17,7 @@ import Profile from "./pages/Profile";
 import OrderStatus from "./pages/OrderStatus";
 import RestaurantDetails from "./pages/RestaurantDetails";
 import LoadingSpinner from "./components/LoadingSpinner";
+import NotFound from "./pages/NotFound";
 
 export default function App() {
   const [user, setUser] = useState(null);
@@ -56,7 +57,7 @@ export default function App() {
   }
 
   return (
-    <Router>
+    <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
       <div className="flex flex-col min-h-screen">
         <Routes>
           <Route path="/login" element={!user ? <Login /> : <Navigate to="/" />} />
@@ -80,7 +81,7 @@ export default function App() {
           <Route path="/privacy" element={<ComingSoon />} />
           <Route path="/cookie" element={<ComingSoon />} />
 
-          <Route path="*" element={<Navigate to="/" />} />
+          <Route path="*" element={<NotFound />} />
         </Routes>
       </div>
     </Router>

@@ -5,30 +5,32 @@ import { auth } from '../firebaseConfig';
 import { useCart } from '../context/CartContext';
 import { useTheme } from '../context/ThemeContext';
 import { useToast } from '../context/ToastContext';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Search, ShoppingCart, User, Heart, Moon, Sun, LogOut, Menu, X, ArrowUpRight } from 'lucide-react';
+import { restaurants } from '../data/restaurants';
 
-export default function AppNavbar({ user: propUser }) {
+export default function Navbar({ user: propUser }) {
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
     const { cartItems } = useCart();
     const { theme, toggleTheme } = useTheme();
     const { showToast } = useToast();
     const totalItems = cartItems.reduce((sum, item) => sum + item.quantity, 0);
-    const [searchTerm, setSearchTerm] = useState(searchParams.get('search') || '');
+
+    const [search, setSearch] = useState(searchParams.get('search') || '');
+    const [showSuggestions, setShowSuggestions] = useState(false);
     const [user, setUser] = useState(propUser || null);
+    const [isScrolled, setIsScrolled] = useState(false);
 
     useEffect(() => {
-        // Only run listener if propUser wasn't provided or we want to be safe
-        const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-            setUser(currentUser);
-        });
-        return () => unsubscribe();
+        const unsubscribe = onAuthStateChanged(auth, (currentUser) => setUser(currentUser));
+        const handleScroll = () => setIsScrolled(window.scrollY > 20);
+        window.addEventListener('scroll', handleScroll);
+        return () => {
+            unsubscribe();
+            window.removeEventListener('scroll', handleScroll);
+        };
     }, []);
-
-    useEffect(() => {
-        if (propUser !== undefined) {
-            setUser(propUser);
-        }
-    }, [propUser]);
 
     const handleLogout = async () => {
         try {
@@ -36,147 +38,155 @@ export default function AppNavbar({ user: propUser }) {
             showToast("Logged out successfully");
             navigate('/login');
         } catch (error) {
-            console.error("Logout Error:", error);
             showToast("Logout failed", "error");
         }
     };
 
-    const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
-
-    const handleSearch = (e) => {
-        const term = e.target.value;
-        setSearchTerm(term);
-        if (term.trim()) {
-            navigate(`/?search=${encodeURIComponent(term)}`);
+    const handleSearchSubmit = (e) => {
+        e.preventDefault();
+        setShowSuggestions(false);
+        if (search.trim()) {
+            navigate(`/?search=${encodeURIComponent(search)}`);
         } else {
             navigate('/');
         }
     };
 
+    const filteredSuggestions = restaurants.filter(r =>
+        r.name.toLowerCase().includes(search.toLowerCase()) ||
+        r.cuisines.some(c => c.toLowerCase().includes(search.toLowerCase()))
+    ).slice(0, 5);
+
     return (
-        <nav className="sticky top-0 z-50 transition-colors duration-300 bg-white/90 dark:bg-[#1e1e1e]/90 text-gray-800 dark:text-white border-b border-gray-200 dark:border-gray-700 backdrop-blur-md shadow-sm">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="flex items-center justify-between h-16">
-                    {/* Logo */}
-                    <Link to="/" className="flex-shrink-0 flex items-center gap-1 no-underline">
-                        <span className="text-2xl font-bold tracking-tight text-gray-900 dark:text-white">Food<span className="text-red-500">Run</span></span>
+        <nav className={`sticky top-0 z-[100] transition-all duration-500 ${isScrolled ? 'py-2 bg-white/80 dark:bg-[#121212]/80 backdrop-blur-xl border-b border-gray-100 dark:border-gray-800 shadow-2xl shadow-black/5' : 'py-6 bg-transparent'}`}>
+            <div className="max-w-7xl mx-auto px-6 flex items-center justify-between gap-8">
+
+                {/* Logo */}
+                <Link to="/" className="flex-shrink-0 group">
+                    <span className="text-3xl font-black tracking-tighter text-gray-900 dark:text-white flex items-center gap-1">
+                        FOOD<span className="text-red-500 group-hover:rotate-12 transition-transform">RUN</span>
+                        <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+                    </span>
+                </Link>
+
+                {/* Advanced Search & Suggestions */}
+                <div className="hidden md:block flex-grow max-w-xl relative">
+                    <form onSubmit={handleSearchSubmit} className="relative group">
+                        <div className="absolute inset-y-0 left-5 flex items-center pointer-events-none">
+                            <Search className="w-4 h-4 text-gray-400 group-focus-within:text-red-500 transition-colors" />
+                        </div>
+                        <div className="flex items-center">
+                            <input
+                                type="text"
+                                placeholder="Find your favorite taste..."
+                                value={search}
+                                onChange={(e) => { setSearch(e.target.value); setShowSuggestions(true); }}
+                                onFocus={() => setShowSuggestions(true)}
+                                className="w-full bg-gray-50/50 dark:bg-black/20 border-2 border-transparent focus:border-red-500/10 focus:bg-white dark:focus:bg-[#1e1e1e] rounded-3xl py-3 pl-14 pr-16 text-sm font-bold shadow-sm focus:shadow-2xl focus:shadow-red-500/5 transition-all outline-none dark:text-white"
+                            />
+                            <button
+                                type="submit"
+                                className="absolute right-2 p-2 bg-red-500 text-white rounded-[1.25rem] hover:bg-red-600 transition-all shadow-lg shadow-red-500/20 active:scale-95"
+                            >
+                                <Search className="w-4 h-4" />
+                            </button>
+                        </div>
+                    </form>
+
+                    <AnimatePresence>
+                        {showSuggestions && search.length > 1 && (
+                            <motion.div
+                                initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                                animate={{ opacity: 1, y: 0, scale: 1 }}
+                                exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                                className="absolute top-full left-0 right-0 mt-4 bg-white dark:bg-[#1e1e1e] rounded-[32px] shadow-[0_32px_64px_-16px_rgba(0,0,0,0.1)] border border-gray-100 dark:border-gray-800 overflow-hidden z-[100]"
+                            >
+                                <div className="p-4">
+                                    <div className="px-4 py-2 mb-2 flex justify-between items-center">
+                                        <p className="text-[10px] font-black uppercase text-gray-400 tracking-[0.2em]">Suggestions</p>
+                                        <X size={14} className="text-gray-300 cursor-pointer hover:text-red-500" onClick={() => setShowSuggestions(false)} />
+                                    </div>
+
+                                    {filteredSuggestions.length > 0 ? (
+                                        filteredSuggestions.map(r => (
+                                            <div
+                                                key={r.id}
+                                                onClick={() => { navigate(`/restaurant/${r.id}`); setShowSuggestions(false); setSearch(""); }}
+                                                className="flex items-center gap-4 p-4 hover:bg-gray-50 dark:hover:bg-black/20 rounded-2xl cursor-pointer transition-all group"
+                                            >
+                                                <div className="w-12 h-12 rounded-xl overflow-hidden shadow-md">
+                                                    <img src={r.image} className="w-full h-full object-cover group-hover:scale-110 transition-transform" />
+                                                </div>
+                                                <div className="flex-grow">
+                                                    <p className="text-sm font-black text-gray-900 dark:text-white mb-0.5">{r.name}</p>
+                                                    <p className="text-[10px] font-bold text-gray-400 line-clamp-1">{r.cuisines.join(", ")}</p>
+                                                </div>
+                                                <ArrowUpRight size={14} className="text-gray-300 group-hover:text-red-500 transition-colors" />
+                                            </div>
+                                        ))
+                                    ) : (
+                                        <div className="p-8 text-center text-gray-400">
+                                            <p className="text-xs font-black uppercase tracking-widest">No matching results</p>
+                                        </div>
+                                    )}
+                                </div>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
+                </div>
+
+                {/* Right Actions */}
+                <div className="flex items-center gap-3 sm:gap-5">
+
+                    <button
+                        onClick={toggleTheme}
+                        className="p-3 bg-gray-50 dark:bg-black/20 rounded-2xl text-gray-500 dark:text-gray-400 hover:text-yellow-500 dark:hover:text-yellow-400 hover:shadow-xl transition-all"
+                    >
+                        {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
+                    </button>
+
+                    <Link to="/favorites" className="hidden sm:flex p-3 bg-gray-50 dark:bg-black/20 rounded-2xl text-gray-500 dark:text-gray-400 hover:text-red-500 hover:shadow-xl transition-all">
+                        <Heart size={20} />
                     </Link>
 
-                    {/* Desktop Search */}
-                    <div className="hidden md:block flex-1 max-w-md mx-8 relative">
-                        <input
-                            type="search"
-                            value={searchTerm}
-                            onChange={handleSearch}
-                            placeholder="Search for restaurants..."
-                            className="w-full px-4 py-2 pr-10 rounded-full border focus:outline-none focus:ring-2 focus:ring-red-500 transition-colors bg-gray-100 dark:bg-[#2a2a2a] border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
-                        />
-                        <button
-                            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-red-500"
-                            onClick={() => {
-                                if (searchTerm.trim()) {
-                                    navigate(`/?search=${encodeURIComponent(searchTerm)}`);
-                                }
-                            }}
-                        >
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                            </svg>
-                        </button>
-                    </div>
-
-                    {/* Right Side Actions */}
-                    <div className="flex items-center gap-4 sm:gap-6">
-                        {/* Mobile Search Toggle */}
-                        <button
-                            className="md:hidden p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors text-gray-700 dark:text-gray-200"
-                            onClick={() => setIsMobileSearchOpen(!isMobileSearchOpen)}
-                        >
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                            </svg>
-                        </button>
-
-                        {/* Navigation Links */}
-                        <div className="hidden sm:flex items-center gap-6 font-medium">
-                            <Link to="/" className="hover:text-red-500 transition-colors text-gray-700 dark:text-gray-200">Home</Link>
-                            <Link to="/favorites" className="hover:text-red-500 transition-colors text-gray-700 dark:text-gray-200">Favorites</Link>
-                            <Link to="/offers" className="hover:text-red-500 transition-colors text-gray-700 dark:text-gray-200">Offers</Link>
-                        </div>
-
-                        {/* Cart */}
-                        <Link to="/cart" className="relative p-2 hover:text-red-500 transition-colors group text-gray-700 dark:text-gray-200">
-                            <span className="text-xl">🛒</span>
-                            {totalItems > 0 && (
-                                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold w-5 h-5 flex items-center justify-center rounded-full border-2 border-white dark:border-[#1e1e1e]">
-                                    {totalItems}
-                                </span>
-                            )}
-                        </Link>
-
-                        {/* Auth Section */}
-                        {user ? (
-                            <div className="flex items-center gap-4">
-                                <Link
-                                    to="/profile"
-                                    className="hidden sm:block font-semibold text-red-500 hover:text-red-600 transition-colors"
-                                >
-                                    Profile
-                                </Link>
-                                <button
-                                    onClick={handleLogout}
-                                    className="px-4 py-2 text-sm font-medium text-red-500 border border-red-500 rounded-full hover:bg-red-500 hover:text-white transition-all duration-300"
-                                >
-                                    Logout
-                                </button>
-                            </div>
-                        ) : (
-                            <Link to="/login">
-                                <button className="px-6 py-2 text-sm font-bold text-white bg-gradient-to-r from-red-500 to-pink-500 rounded-full hover:shadow-lg hover:translate-y-[-2px] transition-all duration-300">
-                                    Login
-                                </button>
-                            </Link>
+                    <Link to="/cart" className="relative p-3 bg-gray-50 dark:bg-black/20 rounded-2xl text-gray-500 dark:text-gray-400 hover:text-emerald-500 hover:shadow-xl transition-all group">
+                        <ShoppingCart size={20} />
+                        {totalItems > 0 && (
+                            <span className="absolute -top-1 -right-1 bg-emerald-500 text-white text-[10px] font-black w-5 h-5 flex items-center justify-center rounded-full border-2 border-white dark:border-[#121212] shadow-lg group-hover:scale-110 transition-transform">
+                                {totalItems}
+                            </span>
                         )}
+                    </Link>
 
-                        {/* Theme Toggle */}
-                        <button
-                            onClick={toggleTheme}
-                            className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
-                            aria-label="Toggle Theme"
-                        >
-                            {theme === 'dark' ? '☀️' : '🌙'}
-                        </button>
-                    </div>
+                    <div className="h-8 w-[1px] bg-gray-100 dark:bg-gray-800 mx-2 hidden sm:block"></div>
+
+                    {user ? (
+                        <div className="flex items-center gap-4">
+                            <Link to="/profile" className="flex items-center gap-3 group">
+                                <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-red-500 to-pink-500 flex items-center justify-center text-white shadow-lg group-hover:shadow-red-500/20 transition-all overflow-hidden">
+                                    <User size={18} />
+                                </div>
+                                <span className="hidden lg:block text-xs font-black uppercase tracking-widest text-gray-900 dark:text-white group-hover:text-red-500 transition-colors">
+                                    {user.displayName?.split(' ')[0] || 'Profile'}
+                                </span>
+                            </Link>
+                            <button
+                                onClick={handleLogout}
+                                className="p-3 bg-gray-50 dark:bg-black/20 rounded-2xl text-gray-400 hover:text-red-500 transition-all"
+                            >
+                                <LogOut size={18} />
+                            </button>
+                        </div>
+                    ) : (
+                        <Link to="/login">
+                            <button className="bg-black dark:bg-white text-white dark:text-black px-8 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:shadow-[0_20px_40px_-10px_rgba(0,0,0,0.3)] hover:-translate-y-1 transition-all active:scale-95">
+                                Login
+                            </button>
+                        </Link>
+                    )}
+
                 </div>
             </div>
-
-            {/* Mobile Search Bar */}
-            {isMobileSearchOpen && (
-                <div className="md:hidden px-4 pb-4 animate-fade-in-down">
-                    <div className="relative">
-                        <input
-                            type="search"
-                            value={searchTerm}
-                            onChange={handleSearch}
-                            placeholder="Search restaurants..."
-                            autoFocus
-                            className="w-full px-4 py-2 pr-10 rounded-full border focus:outline-none focus:ring-2 focus:ring-red-500 transition-colors bg-gray-100 dark:bg-[#2a2a2a] border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
-                        />
-                        <button
-                            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-red-500"
-                            onClick={() => {
-                                if (searchTerm.trim()) {
-                                    navigate(`/?search=${encodeURIComponent(searchTerm)}`);
-                                }
-                            }}
-                        >
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                            </svg>
-                        </button>
-                    </div>
-                </div>
-            )}
         </nav>
     );
 }

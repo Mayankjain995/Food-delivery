@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { signInWithEmailAndPassword } from 'firebase/auth';
-import { auth } from '../firebaseConfig';
+import { signInWithEmailAndPassword, sendPasswordResetEmail, signInWithPopup } from 'firebase/auth';
+import { auth, db, googleProvider } from '../firebaseConfig';
+import { doc, setDoc, getDoc } from 'firebase/firestore';
 import { useToast } from '../context/ToastContext';
 
 export default function Login() {
@@ -9,92 +10,151 @@ export default function Login() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
+    const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
+
+    const checkAndCreateUserDoc = async (user) => {
+        const userRef = doc(db, "users", user.uid);
+        const userSnap = await getDoc(userRef);
+
+        if (!userSnap.exists()) {
+            await setDoc(userRef, {
+                uid: user.uid,
+                email: user.email,
+                displayName: user.displayName || user.email.split('@')[0],
+                createdAt: new Date().toISOString(),
+                preferences: { isVeg: false, isJain: false },
+                addresses: []
+            });
+        }
+    };
 
     const handleLogin = async (e) => {
         e.preventDefault();
         setError('');
+        setLoading(true);
         try {
-            await signInWithEmailAndPassword(auth, email, password);
-            showToast("Login Successful!");
+            const userCredential = await signInWithEmailAndPassword(auth, email, password);
+            await checkAndCreateUserDoc(userCredential.user);
+            showToast("Welcome back!");
             navigate('/');
         } catch (error) {
             console.error("Login failed:", error);
-            setError(error.message);
-            showToast("Login Failed: " + error.code, "error");
+            setError("Invalid email or password");
+            showToast("Login Failed", "error");
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleGoogleSignIn = async () => {
+        setLoading(true);
+        try {
+            const result = await signInWithPopup(auth, googleProvider);
+            await checkAndCreateUserDoc(result.user);
+            showToast("Logged in with Google!");
+            navigate('/');
+        } catch (error) {
+            console.error("Google login failed:", error);
+            showToast("Google Sign-in Failed", "error");
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleForgotPassword = async () => {
+        if (!email) {
+            showToast("Please enter your email address first", "error");
+            return;
+        }
+        try {
+            await sendPasswordResetEmail(auth, email);
+            showToast("Password reset link sent!");
+        } catch (error) {
+            showToast("Failed to send reset link", "error");
         }
     };
 
     return (
         <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-[#121212] py-12 px-4 sm:px-6 lg:px-8 transition-colors duration-300">
-            <div className="max-w-md w-full space-y-8 bg-white dark:bg-[#1e1e1e] p-8 rounded-2xl shadow-xl border border-gray-100 dark:border-gray-800">
+            <div className="max-w-md w-full space-y-8 bg-white dark:bg-[#1e1e1e] p-8 rounded-3xl shadow-2xl border border-gray-100 dark:border-gray-800">
                 <div className="text-center">
-                    <h2 className="mt-6 text-3xl font-extrabold text-gray-900 dark:text-white">
+                    <h2 className="mt-6 text-4xl font-black text-gray-900 dark:text-white tracking-tight">
                         Welcome Back
                     </h2>
-                    <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
-                        Sign in to your account
+                    <p className="mt-2 text-sm text-gray-500 font-medium">
+                        Your favorite meals are waiting
                     </p>
                 </div>
-                <form className="mt-8 space-y-6" onSubmit={handleLogin}>
-                    <div className="rounded-md shadow-sm space-y-4">
-                        <div>
-                            <label htmlFor="email-address" className="sr-only">Email address</label>
+
+                <div className="mt-8 space-y-4">
+                    <button
+                        onClick={handleGoogleSignIn}
+                        className="w-full flex justify-center items-center gap-3 py-4 px-4 border border-gray-200 dark:border-gray-700 rounded-2xl bg-white dark:bg-[#2a2a2a] text-gray-700 dark:text-gray-200 font-bold hover:bg-gray-50 dark:hover:bg-gray-800 transition-all shadow-sm"
+                    >
+                        <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" className="w-5 h-5" />
+                        Continue with Google
+                    </button>
+
+                    <div className="relative flex items-center py-2">
+                        <div className="flex-grow border-t border-gray-100 dark:border-gray-800"></div>
+                        <span className="flex-shrink mx-4 text-gray-400 text-[10px] font-black uppercase tracking-widest">or email</span>
+                        <div className="flex-grow border-t border-gray-100 dark:border-gray-800"></div>
+                    </div>
+
+                    <form className="space-y-4" onSubmit={handleLogin}>
+                        <div className="space-y-3">
                             <input
-                                id="email-address"
-                                name="email"
                                 type="email"
-                                autoComplete="email"
                                 required
-                                className="appearance-none relative block w-full px-3 py-3 border border-gray-300 dark:border-gray-700 placeholder-gray-500 text-gray-900 dark:text-white dark:bg-[#2a2a2a] rounded-lg focus:outline-none focus:ring-red-500 focus:border-red-500 focus:z-10 sm:text-sm"
-                                placeholder="Email address"
+                                className="appearance-none block w-full px-4 py-4 border border-gray-100 dark:border-gray-800 placeholder-gray-400 text-gray-900 dark:text-white dark:bg-black/20 rounded-2xl focus:outline-none focus:ring-2 focus:ring-red-500 transition-all font-medium"
+                                placeholder="Email Address"
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
                             />
-                        </div>
-                        <div>
-                            <label htmlFor="password" className="sr-only">Password</label>
                             <input
-                                id="password"
-                                name="password"
                                 type="password"
-                                autoComplete="current-password"
                                 required
-                                className="appearance-none relative block w-full px-3 py-3 border border-gray-300 dark:border-gray-700 placeholder-gray-500 text-gray-900 dark:text-white dark:bg-[#2a2a2a] rounded-lg focus:outline-none focus:ring-red-500 focus:border-red-500 focus:z-10 sm:text-sm"
+                                className="appearance-none block w-full px-4 py-4 border border-gray-100 dark:border-gray-800 placeholder-gray-400 text-gray-900 dark:text-white dark:bg-black/20 rounded-2xl focus:outline-none focus:ring-2 focus:ring-red-500 transition-all font-medium"
                                 placeholder="Password"
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
                             />
                         </div>
-                    </div>
 
-                    {error && (
-                        <div className="text-red-500 text-sm text-center bg-red-50 dark:bg-red-900/20 p-2 rounded">
-                            {error}
+                        <div className="flex justify-end">
+                            <button
+                                type="button"
+                                onClick={handleForgotPassword}
+                                className="text-xs font-bold text-red-600 hover:text-red-500 uppercase tracking-widest"
+                            >
+                                Forgot password?
+                            </button>
                         </div>
-                    )}
 
-                    <div>
+                        {error && (
+                            <div className="text-red-500 text-xs font-bold text-center bg-red-50 dark:bg-red-900/10 p-3 rounded-2xl">
+                                {error}
+                            </div>
+                        )}
+
                         <button
                             type="submit"
-                            className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-full text-white bg-gradient-to-r from-red-500 to-pink-600 hover:from-red-600 hover:to-pink-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200"
+                            disabled={loading}
+                            className="w-full flex justify-center py-4 px-4 border border-transparent text-sm font-black rounded-2xl text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 shadow-xl shadow-red-500/20 disabled:opacity-50 transform hover:-translate-y-1 transition-all uppercase tracking-widest"
                         >
-                            Sign in
+                            {loading ? "Signing in..." : "Sign in"}
                         </button>
-                    </div>
-                </form>
-                <div className="text-center mt-4">
-                    <p className="text-sm text-gray-600 dark:text-gray-400">
-                        Don't have an account?{' '}
-                        <Link to="/register" className="font-medium text-red-600 hover:text-red-500">
-                            Register here
+                    </form>
+                </div>
+
+                <div className="text-center">
+                    <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">
+                        New here?{' '}
+                        <Link to="/register" className="text-red-600 hover:underline">
+                            Create account
                         </Link>
                     </p>
-                    <div className="mt-2">
-                        <Link to="/" className="text-sm text-gray-500 hover:text-gray-900 dark:hover:text-gray-300">
-                            Back to Home
-                        </Link>
-                    </div>
                 </div>
             </div>
         </div>

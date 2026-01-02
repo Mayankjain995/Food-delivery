@@ -1,207 +1,295 @@
 export const restaurants = [
     {
         id: 1,
-        name: "Burger King",
-        image: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?q=80&w=1899&auto=format&fit=crop",
-        rating: 4.5,
-        deliveryTime: "25-30 min",
-        priceForTwo: "₹350",
-        cuisines: ["Burgers", "American"],
-        offer: "50% OFF",
+        name: "The Veg Delight",
+        image: "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?q=80&w=2000&auto=format&fit=crop",
+        rating: 4.6,
+        deliveryTime: "20-25 min",
+        priceForTwo: "₹400",
+        cuisines: ["North Indian", "South Indian", "Jain"],
+        offer: "FREE DESSERT",
         promoted: true,
-        isVeg: false,
+        isVeg: true,
+        isJainAvailable: true,
         menu: [
-            { id: 101, name: "Whopper", price: "₹199", veg: false, image: "https://images.unsplash.com/photo-1571091718767-18b5b1457add?w=200&q=80" },
-            { id: 102, name: "Veg Whopper", price: "₹179", veg: true, image: "https://images.unsplash.com/photo-1625813506062-0aeb1d7a0956?w=200&q=80" },
-            { id: 103, name: "Chicken Wings", price: "₹150", veg: false, image: "https://images.unsplash.com/photo-1527477396000-64ca55445287?w=200&q=80" },
-            { id: 104, name: "Fries", price: "₹99", veg: true, image: "https://images.unsplash.com/photo-1630384060421-cb20d0e0649d?w=200&q=80" }
+            { id: 101, name: "Paneer Butter Masala", price: "₹280", veg: true, jain: true, category: "Main Course", image: "https://images.unsplash.com/photo-1631452180519-c014fe946bc7?w=400&q=80", description: "Creamy paneer cubes in a rich tomato-based gravy.", customizable: true, options: ["Regular", "Jain Style (No Onion/Garlic)", "Extra Butter"] },
+            { id: 102, name: "Dal Tadka", price: "₹180", veg: true, jain: true, category: "Main Course", image: "https://images.unsplash.com/photo-1546833999-b9f15c7e14f2?w=400&q=80", description: "Yellow lentils tempered with aromatic spices.", customizable: true, options: ["Regular", "Jain Style"] },
+            { id: 103, name: "Cheese Masala Dosa", price: "₹150", veg: true, jain: false, category: "South Indian", image: "https://images.unsplash.com/photo-1589301760014-d929f3979dbc?w=400&q=80", description: "Crispy rice crepe filled with potato masala and cheese.", customizable: true, options: ["Extra Cheese", "Butter Dosa"] }
         ]
     },
     {
         id: 2,
-        name: "Pizza Hut",
-        image: "https://images.unsplash.com/photo-1604382354936-07c5d9983bd3?q=80&w=2070&auto=format&fit=crop",
-        rating: 4.2,
-        deliveryTime: "35-40 min",
-        priceForTwo: "₹400",
-        cuisines: ["Pizza", "Italian"],
-        offer: "Free Coke",
+        name: "Burger Paradise",
+        image: "https://images.unsplash.com/photo-1550547660-d9450f859349?q=80&w=2000&auto=format&fit=crop",
+        rating: 4.4,
+        deliveryTime: "15-20 min",
+        priceForTwo: "₹300",
+        cuisines: ["Burgers", "Fast Food"],
+        offer: "20% OFF",
         promoted: false,
-        isVeg: false,
+        isVeg: true,
+        isJainAvailable: true,
         menu: [
-            { id: 201, name: "Margherita Pizza", price: "₹249", veg: true, image: "https://images.unsplash.com/photo-1574071318508-1cdbab80d002?w=200&q=80" },
-            { id: 202, name: "Pepperoni Pizza", price: "₹399", veg: false, image: "https://images.unsplash.com/photo-1628840042765-356cda07504e?w=200&q=80" },
-            { id: 203, name: "Garlic Bread", price: "₹129", veg: true, image: "https://images.unsplash.com/photo-1619535860434-7f0863f73df5?w=200&q=80" }
+            { id: 201, name: "Classic Veg Burger", price: "₹160", veg: true, jain: true, category: "Burgers", image: "https://images.unsplash.com/photo-1550547660-d9450f859349?w=400&q=80", description: "Double patty veg burger with fresh lettuce.", customizable: true, options: ["Jain Style", "Add Cheese Slice"] },
+            { id: 202, name: "Masala Fries", price: "₹120", veg: true, jain: true, category: "Sides", image: "https://images.unsplash.com/photo-1630384060421-cb20d0e0649d?w=400&q=80", description: "Golden fries tossed in spicy seasoning.", customizable: true, options: ["Extra Spicy", "Less Salt"] }
         ]
     },
     {
         id: 3,
-        name: "KFC",
-        image: "https://images.unsplash.com/photo-1626082927389-6cd097cdc6ec?w=500&q=60",
-        rating: 4.1,
-        deliveryTime: "20-25 min",
+        name: "Pizza Point",
+        image: "https://images.unsplash.com/photo-1513104890138-7c749659a591?q=80&w=2000&auto=format&fit=crop",
+        rating: 4.3,
+        deliveryTime: "30-35 min",
         priceForTwo: "₹500",
-        cuisines: ["Chicken", "Fast Food"],
-        offer: "20% OFF",
+        cuisines: ["Pizza", "Italian", "Jain"],
+        offer: "BUY 1 GET 1",
         promoted: false,
-        isVeg: false,
+        isVeg: true,
+        isJainAvailable: true,
         menu: [
-            { id: 301, name: "Bucket Meal", price: "₹599", veg: false, image: "https://images.unsplash.com/photo-1513639776629-c261c66e28c4?w=200&q=80" },
-            { id: 302, name: "Chicken Burger", price: "₹199", veg: false, image: "https://images.unsplash.com/photo-1615557960916-5f4791effe9d?w=200&q=80" },
-            { id: 303, name: "Veg Strip", price: "₹149", veg: true, image: "https://images.unsplash.com/photo-1626082927389-6cd097cdc6ec?w=200&q=80" }
+            { id: 301, name: "Farmhouse Pizza", price: "₹249", veg: true, jain: true, category: "Pizza", image: "https://images.unsplash.com/photo-1574071318508-1cdbab80d002?w=400&q=80", description: "Fresh mozzarella, olive oil, and fresh basil.", customizable: true, options: ["Jain Style", "Extra Cheese"] },
+            { id: 302, name: "Corn & Cheese Pizza", price: "₹349", veg: true, jain: true, category: "Pizza", image: "https://images.unsplash.com/photo-1571407970349-bc81e7e96d47?w=400&q=80", description: "Loaded with sweet corn, olives, and jalapenos.", customizable: true, options: ["Jain Style", "Add Mushrooms"] }
         ]
     },
     {
         id: 4,
-        name: "Subway",
-        image: "https://images.unsplash.com/photo-1621891947710-d87b25e3ac51?q=80&w=2069&auto=format&fit=crop",
-        rating: 4.4,
-        deliveryTime: "15-20 min",
-        priceForTwo: "₹300",
-        cuisines: ["Healthy", "Sandwiches"],
-        offer: "",
-        promoted: false,
+        name: "Shanti Sweets",
+        image: "https://images.unsplash.com/photo-1504674900247-0877df9cc836?q=80&w=2000&auto=format&fit=crop",
+        rating: 4.7,
+        deliveryTime: "25-30 min",
+        priceForTwo: "₹450",
+        cuisines: ["Jain", "Indian", "Sweets", "Desserts"],
+        offer: "15% OFF",
+        promoted: true,
         isVeg: true,
+        isJainAvailable: true,
         menu: [
-            { id: 401, name: "Veggie Delite", price: "₹189", veg: true, image: "https://images.unsplash.com/photo-1554433607-66b5efe9d304?w=200&q=80" },
-            { id: 402, name: "Paneer Tikka Sub", price: "₹229", veg: true, image: "https://images.unsplash.com/photo-1600891964092-4316c288032e?w=200&q=80" },
-            { id: 403, name: "Salad Bowl", price: "₹249", veg: true, image: "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=200&q=80" }
+            { id: 401, name: "Premium Jain Thali", price: "₹350", veg: true, jain: true, category: "Thali", image: "https://images.unsplash.com/photo-1546833998-877b37c2e5c6?w=400&q=80", description: "Complete pure Jain meal.", customizable: false },
+            { id: 402, name: "Banana Kachori", price: "₹120", veg: true, jain: true, category: "Snacks", image: "https://images.unsplash.com/photo-1601050638917-3d8543329188?w=400&q=80", description: "Deep fried snacks made with raw bananas.", customizable: false }
         ]
     },
     {
         id: 5,
-        name: "Chinese Wok",
-        image: "https://images.unsplash.com/photo-1525755662778-989d0524087e?q=80&w=1974&auto=format&fit=crop",
-        rating: 4.0,
+        name: "Spice Garden",
+        image: "https://images.unsplash.com/photo-1585937421612-70a008356fbe?q=80&w=2000&auto=format&fit=crop",
+        rating: 4.5,
         deliveryTime: "30-35 min",
-        priceForTwo: "₹450",
-        cuisines: ["Chinese", "Asian"],
-        offer: "60% OFF",
-        promoted: true,
-        isVeg: false,
+        priceForTwo: "₹600",
+        cuisines: ["North Indian", "Chinese", "Jain"],
+        offer: "WELCOME50",
+        promoted: false,
+        isVeg: true,
+        isJainAvailable: true,
         menu: [
-            { id: 501, name: "Hakka Noodles", price: "₹199", veg: true, image: "https://images.unsplash.com/photo-1585032226651-759b368d7246?w=200&q=80" },
-            { id: 502, name: "Kung Pao Chicken", price: "₹299", veg: false, image: "https://images.unsplash.com/photo-1525755662778-989d0524087e?w=200&q=80" },
-            { id: 503, name: "Manchurian", price: "₹229", veg: true, image: "https://images.unsplash.com/photo-1526318896980-cf78c088247c?w=200&q=80" }
+            { id: 501, name: "Veg Manchurian", price: "₹220", veg: true, jain: true, category: "Appetizers", image: "https://images.unsplash.com/photo-1525755662778-989d0524087e?w=400&q=80", description: "Fried veg balls in tangy sauce.", customizable: true, options: ["Jain Style", "Extra Gravy"] }
         ]
     },
     {
         id: 6,
-        name: "Baskin Robbins",
-        image: "https://images.unsplash.com/photo-1563805042-7684c019e1cb?q=80&w=1974&auto=format&fit=crop",
-        rating: 4.8,
-        deliveryTime: "10-15 min",
+        name: "South Flavor",
+        image: "https://images.unsplash.com/photo-1589301760014-d929f3979dbc?q=80&w=2000&auto=format&fit=crop",
+        rating: 4.2,
+        deliveryTime: "15-20 min",
         priceForTwo: "₹250",
-        cuisines: ["Dessert", "Ice Cream"],
-        offer: "",
+        cuisines: ["South Indian", "Jain"],
+        offer: "FREESHIP",
         promoted: false,
         isVeg: true,
+        isJainAvailable: true,
         menu: [
-            { id: 601, name: "Vanilla Scoop", price: "₹79", veg: true, image: "https://images.unsplash.com/photo-1560008581-09826d1de69e?w=200&q=80" },
-            { id: 602, name: "Chocolate Cone", price: "₹129", veg: true, image: "https://images.unsplash.com/photo-1580915411954-282cb1b0d780?w=200&q=80" },
-            { id: 603, name: "Sundae", price: "₹199", veg: true, image: "https://images.unsplash.com/photo-1563805042-7684c019e1cb?w=200&q=80" }
+            { id: 601, name: "Idli Sambhar", price: "₹80", veg: true, jain: true, category: "South Indian", image: "https://images.unsplash.com/photo-1589301760014-d929f3979dbc?w=400&q=80", description: "Steamed rice cakes with sambhar.", customizable: true, options: ["Jain Style", "Extra Sambhar"] }
         ]
     },
     {
         id: 7,
-        name: "The Belgian Waffle",
-        image: "https://images.unsplash.com/photo-1563805042-7684c019e1cb?q=80&w=1974&auto=format&fit=crop",
-        rating: 4.6,
-        deliveryTime: "20-25 min",
-        priceForTwo: "₹300",
-        cuisines: ["Dessert", "Waffles"],
-        offer: "",
-        promoted: false,
+        name: "Jain Kitchen",
+        image: "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?q=80&w=2000&auto=format&fit=crop",
+        rating: 4.8,
+        deliveryTime: "20-30 min",
+        priceForTwo: "₹350",
+        cuisines: ["Jain", "Healthy", "Salads"],
+        offer: "purely_jain",
+        promoted: true,
         isVeg: true,
+        isJainAvailable: true,
         menu: [
-            { id: 701, name: "Chocolate Waffle", price: "₹149", veg: true, image: "https://images.unsplash.com/photo-1504754524776-8f4f37790ca0?w=200&q=80" },
-            { id: 702, name: "Red Velvet", price: "₹169", veg: true, image: "https://images.unsplash.com/photo-1562637207-6c2e3650212a?w=200&q=80" }
+            { id: 701, name: "Raw Banana Bowl", price: "₹180", veg: true, jain: true, category: "Healthy", image: "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=400&q=80", description: "Spiced raw banana with fresh herbs.", customizable: false }
         ]
     },
     {
         id: 8,
-        name: "CakeZone",
-        image: "https://images.unsplash.com/photo-1578985545062-69928b1d9587?q=80&w=1989&auto=format&fit=crop",
-        rating: 4.3,
-        deliveryTime: "30-35 min",
-        priceForTwo: "₹500",
-        cuisines: ["Cake", "Bakery"],
-        offer: "10% OFF",
+        name: "The Dhaba",
+        image: "https://images.unsplash.com/photo-1601050638917-3d8543329188?q=80&w=2000&auto=format&fit=crop",
+        rating: 4.1,
+        deliveryTime: "35-40 min",
+        priceForTwo: "₹550",
+        cuisines: ["North Indian", "Street Food"],
+        offer: "DHABA10",
         promoted: false,
         isVeg: true,
+        isJainAvailable: false,
         menu: [
-            { id: 801, name: "Chocolate Truffle Cake", price: "₹499", veg: true, image: "https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=200&q=80" },
-            { id: 802, name: "Red Velvet Cake", price: "₹599", veg: true, image: "https://images.unsplash.com/photo-1586788680434-30d32443696d?w=200&q=80" },
-            { id: 803, name: "Black Forest", price: "₹450", veg: true, image: "https://images.unsplash.com/photo-1606313564200-e75d5e30476d?w=200&q=80" },
-            { id: 804, name: "Cupcakes Pack", price: "₹299", veg: true, image: "https://images.unsplash.com/photo-1576618148400-f54bed99fcf8?w=200&q=80" }
+            { id: 801, name: "Stuffed Paratha", price: "₹120", veg: true, jain: false, category: "Breakfast", image: "https://images.unsplash.com/photo-1601050638917-3d8543329188?w=400&q=80", description: "Aloo stuffed paratha with butter.", customizable: true, options: ["Extra Butter", "Curd Side"] }
         ]
     },
     {
         id: 9,
-        name: "Sweet Truth - Cake and Desserts",
-        image: "https://images.unsplash.com/photo-1621303837174-89787a7d4729?q=80&w=1926&auto=format&fit=crop",
-        rating: 4.5,
-        deliveryTime: "25-30 min",
-        priceForTwo: "₹450",
-        cuisines: ["Cake", "Dessert"],
-        offer: "Free Pastry",
+        name: "Sweet Tooth",
+        image: "https://images.unsplash.com/photo-1563805042-7684c019e1cb?q=80&w=2000&auto=format&fit=crop",
+        rating: 4.9,
+        deliveryTime: "10-15 min",
+        priceForTwo: "₹200",
+        cuisines: ["Desserts", "Ice Cream"],
+        offer: "FREEDEL",
         promoted: true,
-        isVeg: false,
+        isVeg: true,
+        isJainAvailable: true,
         menu: [
-            { id: 901, name: "Hazelnut Brownie", price: "₹120", veg: false, image: "https://images.unsplash.com/photo-1564355808539-22fda35bed7e?w=200&q=80" },
-            { id: 902, name: "Pastry", price: "₹89", veg: true, image: "https://images.unsplash.com/photo-1621303837174-89787a7d4729?w=200&q=80" },
-            { id: 903, name: "Lava Cake", price: "₹99", veg: true, image: "https://images.unsplash.com/photo-1624353365286-3f8d62daad51?w=200&q=80" }
+            { id: 901, name: "Chocolate Lava Cake", price: "₹150", veg: true, jain: true, category: "Cakes", image: "https://images.unsplash.com/photo-1563805042-7684c019e1cb?w=400&q=80", description: "Gooey molten chocolate center.", customizable: false }
         ]
     },
     {
         id: 10,
-        name: "Taco Bell",
-        image: "https://images.unsplash.com/photo-1565299585323-38d6b0865b47?q=80&w=1980&auto=format&fit=crop",
-        rating: 4.1,
-        deliveryTime: "30-40 min",
-        priceForTwo: "₹350",
-        cuisines: ["Mexican", "Tacos"],
-        offer: "Buy 1 Get 1",
+        name: "Mamma Mia Pizza",
+        image: "https://images.unsplash.com/photo-1574071318508-1cdbab80d002?q=80&w=2000&auto=format&fit=crop",
+        rating: 4.4,
+        deliveryTime: "25-30 min",
+        priceForTwo: "₹600",
+        cuisines: ["Italian", "Pasta", "Pizza"],
+        offer: "MAMMA20",
         promoted: false,
-        isVeg: false,
+        isVeg: true,
+        isJainAvailable: true,
         menu: [
-            { id: 1001, name: "Crunchy Taco", price: "₹99", veg: false, image: "https://images.unsplash.com/photo-1565299585323-38d6b0865b47?w=200&q=80" },
-            { id: 1002, name: "Burrito", price: "₹149", veg: true, image: "https://images.unsplash.com/photo-1574852859542-1b41217a7815?w=200&q=80" },
-            { id: 1003, name: "Nachos", price: "₹129", veg: true, image: "https://images.unsplash.com/photo-1513456852971-30cfa3820fa2?w=200&q=80" }
+            { id: 1001, name: "Arrabiata Pasta", price: "₹280", veg: true, jain: true, category: "Pasta", image: "https://images.unsplash.com/photo-1574071318508-1cdbab80d002?w=400&q=80", description: "Spicy tomato sauce with herbs.", customizable: true, options: ["Jain Style", "Add Olives"] }
         ]
     },
     {
         id: 11,
-        name: "Mainland China",
-        image: "https://images.unsplash.com/photo-1585032226651-759b368d7246?q=80&w=1892&auto=format&fit=crop",
-        rating: 4.7,
-        deliveryTime: "45-50 min",
-        priceForTwo: "₹1200",
-        cuisines: ["Chinese", "Asian"],
-        offer: "",
-        promoted: false,
-        isVeg: false,
+        name: "Dosa Junction",
+        image: "https://images.unsplash.com/photo-1584043204475-8cc101d6c77a?q=80&w=2000&auto=format&fit=crop",
+        rating: 4.3,
+        deliveryTime: "20-25 min",
+        priceForTwo: "₹300",
+        cuisines: ["South Indian", "Breakfast"],
+        offer: "DOSA15",
+        promoted: true,
+        isVeg: true,
+        isJainAvailable: true,
         menu: [
-            { id: 1101, name: "Dim Sum", price: "₹350", veg: false, image: "https://images.unsplash.com/photo-1496116218417-1a781b1c423c?w=200&q=80" },
-            { id: 1102, name: "Sushi Platter", price: "₹899", veg: false, image: "https://images.unsplash.com/photo-1579584425555-c3ce17fd4351?w=200&q=80" },
-            { id: 1103, name: "Spring Rolls", price: "₹250", veg: true, image: "https://images.unsplash.com/photo-1544681280-d2dc0cbbface?w=200&q=80" }
+            { id: 1101, name: "Madras Dosa", price: "₹140", veg: true, jain: true, category: "Dosa", image: "https://images.unsplash.com/photo-1584043204475-8cc101d6c77a?w=400&q=80", description: "Extra crispy butter dosa.", customizable: true, options: ["Jain Style", "Poddi Side"] }
         ]
     },
     {
         id: 12,
-        name: "Behrouz Biryani",
-        image: "https://images.unsplash.com/photo-1633945274405-b6c8069047b0?q=80&w=2070&auto=format&fit=crop",
-        rating: 4.4,
-        deliveryTime: "35-45 min",
-        priceForTwo: "₹700",
-        cuisines: ["Biryani", "Mughlai"],
-        offer: "Royal Feast",
-        promoted: true,
-        isVeg: false,
+        name: "The Patty Hub",
+        image: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?q=80&w=2000&auto=format&fit=crop",
+        rating: 4.2,
+        deliveryTime: "15-20 min",
+        priceForTwo: "₹400",
+        cuisines: ["Burgers", "Sandwiches"],
+        offer: "PATTY25",
+        promoted: false,
+        isVeg: true,
+        isJainAvailable: true,
         menu: [
-            { id: 1201, name: "Royal Biryani", price: "₹450", veg: false, image: "https://images.unsplash.com/photo-1633945274405-b6c8069047b0?w=200&q=80" },
-            { id: 1202, name: "Veg Biryani", price: "₹350", veg: true, image: "https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?w=200&q=80" },
-            { id: 1203, name: "Kebabs", price: "₹299", veg: false, image: "https://images.unsplash.com/photo-1599487488170-d11ec9c172f0?w=200&q=80" }
+            { id: 1201, name: "Monster Veg Burger", price: "₹220", veg: true, jain: true, category: "Burgers", image: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400&q=80", description: "Gigantic burger with double patties.", customizable: true, options: ["Jain Style", "Extra Sauce"] }
+        ]
+    },
+    {
+        id: 13,
+        name: "Amrut North Indian",
+        image: "https://images.unsplash.com/photo-1631452180519-c014fe946bc7?q=80&w=2000&auto=format&fit=crop",
+        rating: 4.6,
+        deliveryTime: "30-35 min",
+        priceForTwo: "₹500",
+        cuisines: ["North Indian", "Punjabi"],
+        offer: "WELCOME50",
+        promoted: false,
+        isVeg: true,
+        isJainAvailable: true,
+        menu: [
+            { id: 1301, name: "Butter Naan & Dal", price: "₹320", veg: true, jain: true, category: "Combos", image: "https://images.unsplash.com/photo-1631452180519-c014fe946bc7?w=400&q=80", description: "Classic meal for one person.", customizable: true, options: ["Jain Style", "Garlic Naan"] }
+        ]
+    },
+    {
+        id: 14,
+        name: "Cool Scoops",
+        image: "https://images.unsplash.com/photo-1551609189-eba71b3a8566?q=80&w=2000&auto=format&fit=crop",
+        rating: 4.8,
+        deliveryTime: "10-15 min",
+        priceForTwo: "₹150",
+        cuisines: ["Ice Cream", "Shakes", "Desserts"],
+        offer: "SCOOP10",
+        promoted: true,
+        isVeg: true,
+        isJainAvailable: true,
+        menu: [
+            { id: 1401, name: "Triple Sundae", price: "₹120", veg: true, jain: true, category: "Ice Cream", image: "https://images.unsplash.com/photo-1551609189-eba71b3a8566?w=400&q=80", description: "Three scoops with nuts and syrup.", customizable: true, options: ["Extra Nuts", "Choco Drizzle"] }
+        ]
+    },
+    {
+        id: 15,
+        name: "Govinda's Pure Jain",
+        image: "https://images.unsplash.com/photo-1546833998-877b37c2e5c6?q=80&w=2000&auto=format&fit=crop",
+        rating: 4.9,
+        deliveryTime: "25-30 min",
+        priceForTwo: "₹400",
+        cuisines: ["Jain", "Indian", "Sattvic"],
+        offer: "GOVINDA20",
+        promoted: true,
+        isVeg: true,
+        isJainAvailable: true,
+        menu: [
+            { id: 1501, name: "Sattvic Thali", price: "₹380", veg: true, jain: true, category: "Thali", image: "https://images.unsplash.com/photo-1546833998-877b37c2e5c6?w=400&q=80", description: "Pure Sattvic food, no onion or garlic.", customizable: false }
+        ]
+    },
+    {
+        id: 16,
+        name: "Wok N Veg",
+        image: "https://images.unsplash.com/photo-1525755662778-989d0524087e?q=80&w=2000&auto=format&fit=crop",
+        rating: 4.2,
+        deliveryTime: "20-30 min",
+        priceForTwo: "₹350",
+        cuisines: ["Chinese", "Fusion"],
+        offer: "WOK15",
+        promoted: false,
+        isVeg: true,
+        isJainAvailable: true,
+        menu: [
+            { id: 1601, name: "Veg Hakka Noodles", price: "₹180", veg: true, jain: true, category: "Noodles", image: "https://images.unsplash.com/photo-1525755662778-989d0524087e?w=400&q=80", description: "Noodles with mixed vegetables.", customizable: true, options: ["Jain Style", "Extra Garlic (Non-Jain)"] }
+        ]
+    },
+    {
+        id: 17,
+        name: "Healthy Bites",
+        image: "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?q=80&w=2000&auto=format&fit=crop",
+        rating: 4.5,
+        deliveryTime: "15-20 min",
+        priceForTwo: "₹300",
+        cuisines: ["Healthy", "Salads", "Juices"],
+        offer: "HEALTHY10",
+        promoted: false,
+        isVeg: true,
+        isJainAvailable: true,
+        menu: [
+            { id: 1701, name: "Green Goddess Salad", price: "₹210", veg: true, jain: true, category: "Salads", image: "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=400&q=80", description: "Fresh greens with lemon dressing.", customizable: true, options: ["Add Nuts", "Jain Dressing"] }
+        ]
+    },
+    {
+        id: 18,
+        name: "Savi Ruchi",
+        image: "https://images.unsplash.com/photo-1533089860892-a7c6f0a88666?q=80&w=2000&auto=format&fit=crop",
+        rating: 4.3,
+        deliveryTime: "20-25 min",
+        priceForTwo: "₹250",
+        cuisines: ["Breakfast", "North Indian"],
+        offer: "STAR20",
+        promoted: true,
+        isVeg: true,
+        isJainAvailable: true,
+        menu: [
+            { id: 1801, name: "Chole Bhature", price: "₹160", veg: true, jain: true, category: "Breakfast", image: "https://images.unsplash.com/photo-1533089860892-a7c6f0a88666?w=400&q=80", description: "Spicy chickpeas with fried bread.", customizable: true, options: ["Jain Style", "Extra Paneer"] }
         ]
     }
 ];
@@ -209,8 +297,8 @@ export const restaurants = [
 export const foodCategories = [
     { id: 1, name: "Pizza", image: "https://images.unsplash.com/photo-1513104890138-7c749659a591?q=80&w=2070&auto=format&fit=crop" },
     { id: 2, name: "Burger", image: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?q=80&w=1899&auto=format&fit=crop" },
-    { id: 3, name: "Biryani", image: "https://images.unsplash.com/photo-1589302168068-964664d93dc0?q=80&w=1974&auto=format&fit=crop" },
-    { id: 4, name: "Chinese", image: "https://images.unsplash.com/photo-1525755662778-989d0524087e?q=80&w=1974&auto=format&fit=crop" },
-    { id: 5, name: "Cake", image: "https://images.unsplash.com/photo-1578985545062-69928b1d9587?q=80&w=1989&auto=format&fit=crop" },
-    { id: 6, name: "Ice Cream", image: "https://images.unsplash.com/photo-1563805042-7684c019e1cb?q=80&w=1974&auto=format&fit=crop" }
+    { id: 3, name: "North Indian", image: "https://images.unsplash.com/photo-1631452180519-c014fe946bc7?q=80&w=2070&auto=format&fit=crop" },
+    { id: 4, name: "Jain Special", image: "https://images.unsplash.com/photo-1546833998-877b37c2e5c6?q=80&w=2000&auto=format&fit=crop" },
+    { id: 5, name: "South Indian", image: "https://images.unsplash.com/photo-1589301760014-d929f3979dbc?q=80&w=1974&auto=format&fit=crop" },
+    { id: 6, name: "Desserts", image: "https://images.unsplash.com/photo-1563805042-7684c019e1cb?q=80&w=1974&auto=format&fit=crop" }
 ];

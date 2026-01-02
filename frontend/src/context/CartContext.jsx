@@ -17,31 +17,56 @@ export function CartProvider({ children }) {
         localStorage.setItem('cartItems', JSON.stringify(cartItems));
     }, [cartItems]);
 
-    const addToCart = (item) => {
+    const addToCart = (item, options = [], instructions = '') => {
         setCartItems(prev => {
-            const existing = prev.find(i => i.id === item.id);
-            if (existing) {
-                return prev.map(i => i.id === item.id ? { ...i, quantity: i.quantity + 1 } : i);
+            // Check if adding from a different restaurant
+            if (prev.length > 0 && prev[0].restaurantId !== item.restaurantId) {
+                const confirmClear = window.confirm("Your cart contains items from another restaurant. Replace it with your new selection?");
+                if (!confirmClear) return prev;
+                // If user confirms, return only the new item
+                return [{ ...item, quantity: 1, options, instructions }];
             }
-            return [...prev, { ...item, quantity: 1 }];
+
+            // Generate a unique key based on ID and chosen options
+            const optionsKey = options.sort().join(',');
+            const existing = prev.find(i => i.id === item.id && (i.options?.sort().join(',') === optionsKey));
+
+            if (existing) {
+                return prev.map(i => (i.id === item.id && (i.options?.sort().join(',') === optionsKey))
+                    ? { ...i, quantity: i.quantity + 1 }
+                    : i
+                );
+            }
+            return [...prev, { ...item, quantity: 1, options, instructions }];
         });
     };
 
-    const removeFromCart = (id) => {
-        setCartItems(prev => prev.filter(i => i.id !== id));
+    const updateInstructions = (id, options, instructions) => {
+        const optionsKey = options.sort().join(',');
+        setCartItems(prev => prev.map(i =>
+            (i.id === id && (i.options?.sort().join(',') === optionsKey))
+                ? { ...i, instructions }
+                : i
+        ));
     };
 
-    const updateQuantity = (id, delta) => {
+    const updateQuantity = (id, options = [], delta) => {
+        const optionsKey = options.sort().join(',');
         setCartItems(prev => {
             return prev.map(item => {
-                if (item.id === id) {
+                if (item.id === id && (item.options?.sort().join(',') === optionsKey)) {
                     const newQty = item.quantity + delta;
-                    if (newQty < 1) return null; // Remove if quantity becomes 0
+                    if (newQty < 1) return null;
                     return { ...item, quantity: newQty };
                 }
                 return item;
             }).filter(Boolean);
         });
+    };
+
+    const removeFromCart = (id, options = []) => {
+        const optionsKey = options.sort().join(',');
+        setCartItems(prev => prev.filter(i => !(i.id === id && (i.options?.sort().join(',') === optionsKey))));
     };
 
     const clearCart = () => setCartItems([]);
@@ -51,6 +76,7 @@ export function CartProvider({ children }) {
         addToCart,
         removeFromCart,
         updateQuantity,
+        updateInstructions,
         clearCart
     };
 

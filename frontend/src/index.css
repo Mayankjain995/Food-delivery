@@ -17,10 +17,10 @@ body {
   min-height: 100vh;
 }
 
-/* Custom Scrollbar */
+/* Custom Scrollbar - Premium & Minimalist */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
 }
 
 ::-webkit-scrollbar-track {
@@ -28,10 +28,32 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #555;
-  border-radius: 4px;
+  background: #ef444433;
+  /* red-500 with opacity */
+  border-radius: 10px;
+  transition: all 0.3s ease;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #888;
+  background: #ef4444;
+  /* red-500 */
+}
+
+/* Smooth Background & Text Transitions for Theme Swapping */
+* {
+  transition: background-color 0.3s ease, border-color 0.3s ease, color 0.1s ease;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Input & Button Active States */
+button:active,
+a:active {
+  transform: scale(0.98);
 }

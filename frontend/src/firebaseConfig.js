@@ -1,5 +1,5 @@
 import { initializeApp } from "firebase/app";
-import { getAuth } from "firebase/auth";
+import { getAuth, GoogleAuthProvider } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 
 const firebaseConfig = {
@@ -14,6 +14,7 @@ const firebaseConfig = {
 let app;
 let auth;
 let db;
+const googleProvider = new GoogleAuthProvider();
 
 try {
   // Check if API Key is present. If not, the app will show the "Configuration Error" screen (handled in App.jsx).
@@ -28,4 +29,4 @@ try {
   console.error("Firebase Initialization Failed:", error);
 }
 
-export { auth, db };
+export { auth, db, googleProvider };

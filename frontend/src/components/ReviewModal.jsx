@@ -12,14 +12,14 @@ export default function ReviewModal({ restaurantId, onClose, onReviewAdded }) {
         setSubmitting(true);
         try {
             await addDoc(collection(db, "reviews"), {
-                restaurantId,
+                restaurantId: Number(restaurantId),
                 userId: auth.currentUser.uid,
-                userName: auth.currentUser.email.split('@')[0], // Simple username
+                userName: auth.currentUser.displayName || auth.currentUser.email.split('@')[0],
                 rating,
                 comment,
                 createdAt: serverTimestamp()
             });
-            onReviewAdded();
+            if (onReviewAdded) onReviewAdded();
             onClose();
         } catch (error) {
             console.error("Error submitting review:", error);

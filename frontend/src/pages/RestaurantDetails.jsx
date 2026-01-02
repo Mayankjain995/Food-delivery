@@ -1,13 +1,16 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import { restaurants } from '../data/restaurants';
 import { useCart } from '../context/CartContext';
 import { db, auth } from '../firebaseConfig';
-import { collection, query, where, getDocs, orderBy } from 'firebase/firestore';
+import { collection, query, where, getDocs } from 'firebase/firestore';
 import ReviewModal from '../components/ReviewModal';
+import CustomizationModal from '../components/CustomizationModal';
 import { useToast } from '../context/ToastContext';
+import { motion, AnimatePresence } from 'framer-motion';
+import { ChefHat, Clock, Star, IndianRupee, Info, Search, Filter, ShoppingBag } from 'lucide-react';
 
 export default function RestaurantDetails() {
     const { id } = useParams();
@@ -17,9 +20,67 @@ export default function RestaurantDetails() {
     const restaurant = restaurants.find(r => r.id === parseInt(id));
 
     const [vegOnly, setVegOnly] = useState(false);
-    const [sortBy, setSortBy] = useState("default"); // default, high, low
+    const [sortBy, setSortBy] = useState("default");
+    const [searchTerm, setSearchTerm] = useState("");
+    const [selectedItemForCustomization, setSelectedItemForCustomization] = useState(null);
 
-    // Review System State
+    // Grouping items by a mock category (or real if available)
+    const getGroupedMenu = () => {
+        let items = restaurant?.menu || [];
+
+        // Filter by veg
+        if (vegOnly) items = items.filter(i => i.veg);
+
+        // Filter by search
+        if (searchTerm) {
+            items = items.filter(i => i.name.toLowerCase().includes(searchTerm.toLowerCase()));
+        }
+
+        // Sort
+        if (sortBy === "low") {
+            items.sort((a, b) => {
+                const pA = parseInt(a.price.replace(/[^0-9]/g, '')) || 0;
+                const pB = parseInt(b.price.replace(/[^0-9]/g, '')) || 0;
+                return pA - pB;
+            });
+        } else if (sortBy === "high") {
+            items.sort((a, b) => {
+                const pA = parseInt(a.price.replace(/[^0-9]/g, '')) || 0;
+                const pB = parseInt(b.price.replace(/[^0-9]/g, '')) || 0;
+                return pB - pA;
+            });
+        }
+
+        // Mock categories if not present
+        const groups = {};
+        items.forEach(item => {
+            const cat = item.category || "Recommended";
+            if (!groups[cat]) groups[cat] = [];
+            groups[cat].push(item);
+        });
+        return groups;
+    };
+
+    const groupedMenu = getGroupedMenu();
+    const categories = Object.keys(groupedMenu);
+
+    // Scroll to category
+    const scrollToCategory = (catId) => {
+        const element = document.getElementById(catId);
+        if (element) {
+            const offset = 140; // sticky nav height
+            const bodyRect = document.body.getBoundingClientRect().top;
+            const elementRect = element.getBoundingClientRect().top;
+            const elementPosition = elementRect - bodyRect;
+            const offsetPosition = elementPosition - offset;
+
+            window.scrollTo({
+                top: offsetPosition,
+                behavior: 'smooth'
+            });
+        }
+    };
+
     const [reviews, setReviews] = useState([]);
     const [showReviewModal, setShowReviewModal] = useState(false);
     const [canReview, setCanReview] = useState(false);
@@ -27,265 +88,270 @@ export default function RestaurantDetails() {
 
     const fetchReviewsAndCheckPermission = async () => {
         if (!restaurant) return;
-
         try {
-            // 1. Fetch Reviews
-            const q = query(
-                collection(db, "reviews"),
-                where("restaurantId", "==", restaurant.id)
-            );
+            const q = query(collection(db, "reviews"), where("restaurantId", "==", restaurant.id));
             const querySnapshot = await getDocs(q);
             const fetchedReviews = querySnapshot.docs.map(doc => doc.data());
-
-            // Calculate Average Rating
             if (fetchedReviews.length > 0) {
                 const total = fetchedReviews.reduce((sum, r) => sum + r.rating, 0);
                 setAvgRating((total / fetchedReviews.length).toFixed(1));
             }
-
-            // Sort by date (client side as generic index might be missing)
             fetchedReviews.sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
             setReviews(fetchedReviews);
 
-            // 2. Check Permission (if logged in)
             if (auth.currentUser) {
-                const ordersQ = query(
-                    collection(db, "orders"),
-                    where("userId", "==", auth.currentUser.uid)
-                );
+                const ordersQ = query(collection(db, "orders"), where("userId", "==", auth.currentUser.uid));
                 const ordersSnapshot = await getDocs(ordersQ);
-                // Check if any order contains items from this restaurant
                 const hasOrdered = ordersSnapshot.docs.some(doc => {
                     const data = doc.data();
                     return data.items && data.items.some(item => item.restaurantId === restaurant.id);
                 });
                 setCanReview(hasOrdered);
             }
-        } catch (error) {
-            console.error("Error fetching reviews:", error);
-        }
+        } catch (error) { console.error(error); }
     };
 
-    React.useEffect(() => {
+    useEffect(() => {
         fetchReviewsAndCheckPermission();
     }, [restaurant]);
 
-    // Use restaurant specific menu or empty array if not defined
-    const menuItems = restaurant?.menu || [];
-
-    if (!restaurant) {
-        return (
-            <div className="min-h-screen flex items-center justify-center bg-[#121212] text-white">
-                <div className="text-center">
-                    <p className="text-xl mb-4">Restaurant not found.</p>
-                    <Link to="/" className="text-red-500 hover:text-red-400 font-bold">Go Home</Link>
-                </div>
-            </div>
-        );
-    }
+    if (!restaurant) return <div>Not Found</div>;
 
     const getQty = (itemId) => {
-        const item = cartItems.find(i => i.id === itemId);
-        return item ? item.quantity : 0;
+        const items = cartItems.filter(i => i.id === itemId);
+        return items.reduce((sum, i) => sum + i.quantity, 0);
     };
-
-    const getProcessedMenu = () => {
-        let items = [...menuItems];
-
-        if (restaurant.isVeg) {
-            items = items.filter(i => i.veg);
-        }
-
-        if (vegOnly) {
-            items = items.filter(i => i.veg);
-        }
-        if (sortBy === "low") {
-            items.sort((a, b) => parseInt(a.price.replace('₹', '')) - parseInt(b.price.replace('₹', '')));
-        } else if (sortBy === "high") {
-            items.sort((a, b) => parseInt(b.price.replace('₹', '')) - parseInt(a.price.replace('₹', '')));
-        }
-        return items;
-    };
-
-    const processedMenu = getProcessedMenu();
 
     return (
-        <div className="min-h-screen bg-gray-50 dark:bg-[#121212] flex flex-col transition-colors duration-300">
+        <div className="min-h-screen bg-white dark:bg-[#121212] flex flex-col transition-colors duration-300">
             <Navbar />
 
-            {/* Header Section */}
-            <div className="bg-white dark:bg-[#1e1e1e] py-12 border-b border-gray-200 dark:border-gray-800 text-gray-900 dark:text-white transition-colors duration-300">
+            {/* Premium Header */}
+            <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="bg-gray-50 dark:bg-[#1e1e1e] py-16 border-b border-gray-100 dark:border-gray-800"
+            >
                 <div className="max-w-7xl mx-auto px-6">
-                    <h1 className="text-4xl md:text-5xl font-bold mb-3">{restaurant.name}</h1>
-                    <p className="text-gray-600 dark:text-gray-400 text-lg mb-4">{restaurant.cuisines.join(", ")}</p>
-                    <div className="flex flex-wrap items-center gap-4 text-sm md:text-base">
-                        <div className="bg-green-600 text-white px-3 py-1 rounded font-bold flex items-center gap-1">
-                            <span>★</span> {avgRating} <span className='text-xs font-normal opacity-80'>({reviews.length})</span>
-                        </div>
-                        <span className="text-gray-500 dark:text-gray-400 font-medium">{restaurant.deliveryTime}</span>
-                        <span className="text-gray-400 dark:text-gray-600">•</span>
-                        <span className="text-gray-500 dark:text-gray-400 font-medium">{restaurant.priceForTwo} for two</span>
-                    </div>
-                </div>
-            </div>
+                    <div className="flex flex-col md:flex-row gap-8 items-start">
+                        <div className="w-full md:w-3/4">
+                            <h1 className="text-5xl md:text-6xl font-black mb-4 tracking-tighter text-gray-900 dark:text-white">{restaurant.name}</h1>
+                            <p className="text-xl text-gray-400 font-bold mb-8">{restaurant.cuisines.join(" • ")}</p>
 
-            {/* Menu Section */}
-            <div className="max-w-7xl mx-auto px-6 py-8 w-full flex-grow">
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8">
-                    <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Recommended Menu</h2>
-
-                    <div className="flex items-center gap-4">
-                        {/* Veg Only Toggle */}
-                        <div
-                            onClick={() => setVegOnly(!vegOnly)}
-                            className={`flex items-center gap-2 px-4 py-2 rounded-full cursor-pointer select-none border transition-colors ${vegOnly
-                                ? 'bg-green-50/10 border-green-500'
-                                : 'bg-white dark:bg-[#2a2a2a] border-gray-300 dark:border-gray-700'
-                                }`}
-                        >
-                            <div className={`w-4 h-4 rounded-full border ${vegOnly ? 'bg-green-600 border-green-600' : 'bg-transparent border-gray-400'}`}></div>
-                            <span className={`font-medium ${vegOnly ? 'text-green-600' : 'text-gray-600 dark:text-gray-300'}`}>Pure Veg</span>
-                        </div>
-
-                        {/* Sort Dropdown */}
-                        <select
-                            value={sortBy}
-                            onChange={(e) => setSortBy(e.target.value)}
-                            className="bg-white dark:bg-[#2a2a2a] text-gray-900 dark:text-white border border-gray-300 dark:border-gray-700 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-red-500 cursor-pointer"
-                        >
-                            <option value="default">Sort by</option>
-                            <option value="low">Price: Low to High</option>
-                            <option value="high">Price: High to Low</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
-                    {processedMenu.map(item => {
-                        const qty = getQty(item.id);
-                        return (
-                            <div key={item.id} className="bg-white dark:bg-[#1e1e1e] rounded-xl p-4 shadow-sm border border-gray-100 dark:border-gray-800 flex justify-between gap-4 group hover:shadow-md transition-shadow">
-                                <div className="flex-grow min-w-0">
-                                    <div className="mb-2">
-                                        {item.veg ? (
-                                            <span className="inline-block border border-green-600 rounded p-[2px]">
-                                                <div className="w-2 h-2 bg-green-600 rounded-full"></div>
-                                            </span>
-                                        ) : (
-                                            <span className="inline-block border border-red-600 rounded p-[2px]">
-                                                <div className="w-2 h-2 bg-red-600 rounded-full"></div>
-                                            </span>
-                                        )}
+                            <div className="flex flex-wrap items-center gap-8">
+                                <div className="flex flex-col">
+                                    <div className="flex items-center gap-2 mb-1">
+                                        <Star className="w-5 h-5 fill-red-500 text-red-500" />
+                                        <span className="text-2xl font-black text-gray-900 dark:text-white">{avgRating}</span>
                                     </div>
-                                    <h3 className="font-bold text-lg text-gray-900 dark:text-gray-100 mb-1">{item.name}</h3>
-                                    <p className="text-gray-600 dark:text-gray-400 font-medium">{item.price}</p>
+                                    <span className="text-[10px] font-black uppercase text-gray-400 tracking-widest">{reviews.length}+ Ratings</span>
                                 </div>
-
-                                <div className="relative flex-shrink-0">
-                                    <div className="w-32 h-28 rounded-xl overflow-hidden mb-8">
-                                        <img
-                                            src={item.image}
-                                            alt={item.name}
-                                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                                        />
+                                <div className="flex flex-col border-l dark:border-gray-800 pl-8">
+                                    <div className="flex items-center gap-2 mb-1 text-gray-900 dark:text-white">
+                                        <Clock className="w-5 h-5 text-gray-400" />
+                                        <span className="text-2xl font-black">{restaurant.deliveryTime}</span>
                                     </div>
-
-                                    <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 shadow-lg rounded-lg bg-white dark:bg-[#2a2a2a] border border-gray-200 dark:border-gray-700 overflow-hidden min-w-[100px]">
-                                        {qty > 0 ? (
-                                            <div className="flex items-center justify-between px-2 py-1">
-                                                <button
-                                                    onClick={() => updateQuantity(item.id, -1)}
-                                                    className="text-red-500 font-bold px-2 hover:bg-red-50 rounded"
-                                                >
-                                                    -
-                                                </button>
-                                                <span className="text-green-600 font-bold text-sm mx-1">{qty}</span>
-                                                <button
-                                                    onClick={() => updateQuantity(item.id, 1)}
-                                                    className="text-green-600 font-bold px-2 hover:bg-green-50 rounded"
-                                                >
-                                                    +
-                                                </button>
-                                            </div>
-                                        ) : (
-                                            <button
-                                                onClick={() => {
-                                                    addToCart({ ...item, restaurantId: restaurant.id });
-                                                    showToast(`${item.name} added to cart!`, 'success');
-                                                }}
-                                                className="w-full text-green-600 font-bold text-sm py-2 hover:bg-green-50 dark:hover:bg-gray-700 transition-colors uppercase"
-                                            >
-                                                ADD
-                                            </button>
-                                        )}
+                                    <span className="text-[10px] font-black uppercase text-gray-400 tracking-widest">Delivery Time</span>
+                                </div>
+                                <div className="flex flex-col border-l dark:border-gray-800 pl-8">
+                                    <div className="flex items-center gap-2 mb-1 text-gray-900 dark:text-white">
+                                        <IndianRupee className="w-5 h-5 text-gray-400" />
+                                        <span className="text-2xl font-black">{restaurant.priceForTwo.replace(/[^0-9]/g, '')}</span>
                                     </div>
+                                    <span className="text-[10px] font-black uppercase text-gray-400 tracking-widest">Price for Two</span>
                                 </div>
                             </div>
-                        )
-                    })}
+                        </div>
+
+                        <div className="w-full md:w-1/4 bg-red-600 rounded-3xl p-8 text-white shadow-2xl shadow-red-500/20">
+                            <h4 className="text-xs font-black uppercase tracking-widest mb-2 opacity-80">Current Offer</h4>
+                            <p className="text-3xl font-black mb-4 leading-tight">{restaurant.offer || "Special Menu Today"}</p>
+                            <div className="text-[10px] font-black px-3 py-1 bg-white/20 rounded-full inline-block backdrop-blur-sm">USE CODE: WELCOME50</div>
+                        </div>
+                    </div>
+                </div>
+            </motion.div>
+
+            {/* Sticky Navigation & Menu */}
+            <div className="sticky top-[80px] z-[50] bg-white/80 dark:bg-[#121212]/80 backdrop-blur-xl border-b border-gray-100 dark:border-gray-800 py-4 shadow-sm">
+                <div className="max-w-7xl mx-auto px-6 flex items-center justify-between gap-4">
+                    <div className="flex items-center gap-6 overflow-x-auto no-scrollbar scroll-smooth">
+                        {categories.map(cat => (
+                            <button
+                                key={cat}
+                                onClick={() => scrollToCategory(cat)}
+                                className="whitespace-nowrap text-xs font-black uppercase tracking-widest text-gray-400 hover:text-red-500 transition-colors py-2 px-1 border-b-2 border-transparent hover:border-red-500"
+                            >
+                                {cat}
+                            </button>
+                        ))}
+                    </div>
+
+                    <div className="flex items-center gap-3">
+                        <div className="hidden md:flex items-center bg-gray-50 dark:bg-black/20 rounded-2xl px-4 py-2 border border-transparent focus-within:border-red-500/50 transition-all">
+                            <Search className="w-4 h-4 text-gray-400" />
+                            <input
+                                type="text"
+                                placeholder="Search in menu..."
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                className="bg-transparent border-none outline-none text-xs font-bold ml-2 w-40 dark:text-white"
+                            />
+                        </div>
+                        <button
+                            onClick={() => setVegOnly(!vegOnly)}
+                            className={`p-2 rounded-2xl border transition-all ${vegOnly ? 'bg-green-500 border-green-500 text-white' : 'bg-gray-50 dark:bg-black/20 text-gray-400'}`}
+                        >
+                            🥗
+                        </button>
+                    </div>
                 </div>
             </div>
 
+            <div className="max-w-7xl mx-auto px-6 py-12 w-full flex-grow">
+                {categories.map(cat => (
+                    <div key={cat} id={cat} className="mb-16 scroll-mt-[160px]">
+                        <h2 className="text-3xl font-black mb-8 flex items-center gap-4 text-gray-900 dark:text-white">
+                            {cat}
+                            <span className="h-1 flex-grow bg-gray-100 dark:bg-gray-800 rounded-full"></span>
+                            <span className="text-xs font-black text-gray-400 uppercase tracking-widest">{groupedMenu[cat].length} Items</span>
+                        </h2>
 
-            {/* Reviews Section */}
-            <div className="bg-white dark:bg-[#1e1e1e] border-t border-gray-100 dark:border-gray-800 py-12 transition-colors duration-300">
-                <div className="max-w-7xl mx-auto px-6">
-                    <div className="flex justify-between items-center mb-8">
-                        <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Reviews & Ratings</h2>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                            {groupedMenu[cat].map(item => {
+                                const qty = getQty(item.id);
+                                return (
+                                    <motion.div
+                                        layout
+                                        key={item.id}
+                                        className="bg-white dark:bg-[#1e1e1e] rounded-3xl p-6 shadow-sm border border-gray-50 dark:border-gray-800 flex items-center gap-6 group hover:shadow-2xl hover:shadow-red-500/5 transition-all text-gray-900 dark:text-white"
+                                    >
+                                        <div className="relative w-32 h-32 flex-shrink-0">
+                                            <img src={item.image} alt={item.name} className="w-full h-full object-cover rounded-2xl shadow-lg group-hover:scale-105 transition-transform duration-500" />
+                                            <div className="absolute top-2 right-2 flex flex-col gap-1">
+                                                {item.veg && (
+                                                    <div className="w-5 h-5 bg-white rounded flex items-center justify-center p-0.5 shadow-md">
+                                                        <div className="w-full h-full border-2 border-green-600 rounded-sm flex items-center justify-center">
+                                                            <div className="w-2 h-2 bg-green-600 rounded-full"></div>
+                                                        </div>
+                                                    </div>
+                                                )}
+                                                {item.jain && (
+                                                    <div className="w-5 h-5 bg-white rounded flex items-center justify-center p-0.5 shadow-md group/jain relative">
+                                                        <span className="text-[10px] leading-none">🕉️</span>
+                                                        <div className="absolute bottom-full right-0 mb-2 invisible group-hover/jain:visible bg-black text-white text-[8px] px-2 py-1 rounded whitespace-nowrap z-10">Jain Available</div>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+
+                                        <div className="flex-grow">
+                                            <div className="flex items-center gap-2 mb-1">
+                                                <h3 className="text-lg font-black tracking-tight">{item.name}</h3>
+                                                {item.customizable && <span className="text-[8px] font-black bg-orange-100 text-orange-600 px-1 py-0.5 rounded tracking-widest flex items-center gap-0.5"><ShoppingBag size={8} />CUSTOM</span>}
+                                            </div>
+                                            <p className="text-red-500 font-extrabold mb-2">{item.price}</p>
+                                            <p className="text-gray-400 text-xs font-medium line-clamp-2 mb-4">{item.description || "Freshly prepared with authentic ingredients."}</p>
+
+                                            <div className="flex items-center gap-4">
+                                                {qty > 0 && !item.customizable ? (
+                                                    <div className="flex items-center bg-gray-100 dark:bg-[#2a2a2a] rounded-xl px-2">
+                                                        <button onClick={() => updateQuantity(item.id, [], -1)} className="p-2 text-red-500 font-black text-lg hover:scale-125 transition-transform">-</button>
+                                                        <span className="font-black text-sm px-4">{qty}</span>
+                                                        <button onClick={() => updateQuantity(item.id, [], 1)} className="p-2 text-green-600 font-black text-lg hover:scale-125 transition-transform">+</button>
+                                                    </div>
+                                                ) : (
+                                                    <button
+                                                        onClick={() => item.customizable ? setSelectedItemForCustomization(item) : addToCart({ ...item, restaurantId: restaurant.id })}
+                                                        className="bg-white dark:bg-[#2a2a2a] border-2 border-gray-100 dark:border-gray-800 px-6 py-2 rounded-xl text-xs font-black uppercase tracking-widest hover:border-red-500 hover:text-red-500 transition-all shadow-sm active:scale-95"
+                                                    >
+                                                        {item.customizable ? (qty > 0 ? "Add More" : "Add & Customize") : "Add to Cart"}
+                                                    </button>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </motion.div>
+                                );
+                            })}
+                        </div>
+                    </div>
+                ))}
+
+                {/* Reviews Section */}
+                <section className="mt-24 pt-24 border-t border-gray-100 dark:border-gray-800">
+                    <div className="flex items-center justify-between mb-12">
+                        <div>
+                            <h2 className="text-4xl font-black mb-2 text-gray-900 dark:text-white">Customer Stories</h2>
+                            <p className="text-gray-400 font-bold uppercase text-[10px] tracking-[0.2em]">{reviews.length} Validated Reviews</p>
+                        </div>
                         {canReview && (
                             <button
                                 onClick={() => setShowReviewModal(true)}
-                                className="bg-red-500 hover:bg-red-600 text-white px-6 py-2 rounded-full font-bold shadow-md transition-transform transform hover:scale-105"
+                                className="bg-black dark:bg-white text-white dark:text-black font-black px-8 py-4 rounded-2xl text-xs uppercase tracking-widest border border-black dark:border-white transition-all hover:bg-gray-800 dark:hover:bg-gray-100"
                             >
-                                Write a Review
+                                Share your story
                             </button>
                         )}
                     </div>
 
-                    {reviews.length === 0 ? (
-                        <div className="text-center py-8 text-gray-500 dark:text-gray-400">
-                            No reviews yet. {canReview ? "Be the first to review!" : "Order now to leave a review."}
-                        </div>
-                    ) : (
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            {reviews.map((review, idx) => (
-                                <div key={idx} className="bg-gray-50 dark:bg-[#2a2a2a] p-6 rounded-xl border border-gray-100 dark:border-gray-700">
-                                    <div className="flex justify-between items-start mb-4">
-                                        <div className="flex items-center gap-3">
-                                            <div className="w-10 h-10 rounded-full bg-gradient-to-r from-purple-500 to-indigo-500 flex items-center justify-center text-white font-bold">
-                                                {review.userName?.charAt(0).toUpperCase() || "U"}
-                                            </div>
-                                            <div>
-                                                <h4 className="font-bold text-gray-900 dark:text-white">{review.userName || "User"}</h4>
-                                                <div className="flex text-yellow-400 text-sm">
-                                                    {[...Array(5)].map((_, i) => (
-                                                        <span key={i}>{i < review.rating ? "★" : "☆"}</span>
-                                                    ))}
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <span className="text-xs text-gray-400">
-                                            {review.createdAt?.seconds ? new Date(review.createdAt.seconds * 1000).toLocaleDateString() : "Just now"}
-                                        </span>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                        {reviews.length === 0 ? (
+                            <div className="col-span-3 text-center py-20 bg-gray-50 dark:bg-black/20 rounded-[40px] border-2 border-dashed border-gray-200 dark:border-gray-800">
+                                <span className="text-4xl block mb-4">✍️</span>
+                                <p className="text-gray-400 font-black uppercase text-xs tracking-widest">No reviews yet. Be the first!</p>
+                            </div>
+                        ) : (
+                            reviews.map((r, i) => (
+                                <motion.div
+                                    initial={{ opacity: 0, scale: 0.9 }}
+                                    whileInView={{ opacity: 1, scale: 1 }}
+                                    viewport={{ once: true }}
+                                    key={i}
+                                    className="bg-white dark:bg-[#1e1e1e] p-8 rounded-[32px] border border-gray-100 dark:border-gray-800 shadow-sm"
+                                >
+                                    <div className="flex items-center gap-1 mb-4">
+                                        {[...Array(5)].map((_, star) => (
+                                            <Star key={star} size={14} className={star < r.rating ? "fill-red-500 text-red-500" : "text-gray-200 dark:text-gray-700"} />
+                                        ))}
                                     </div>
-                                    <p className="text-gray-600 dark:text-gray-300 italic">"{review.comment}"</p>
-                                </div>
-                            ))}
-                        </div>
-                    )}
-                </div>
+                                    <p className="text-sm font-medium leading-relaxed mb-6 text-gray-700 dark:text-gray-300">"{r.comment}"</p>
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-10 h-10 bg-gray-100 dark:bg-black/40 rounded-full flex items-center justify-center font-black text-xs text-gray-900 dark:text-white">{r.userName?.[0].toUpperCase() || "U"}</div>
+                                        <div>
+                                            <p className="text-[10px] font-black uppercase tracking-widest text-gray-900 dark:text-white">{r.userName || 'Anonymous User'}</p>
+                                            <p className="text-[8px] text-gray-400 font-bold">{r.createdAt?.seconds ? new Date(r.createdAt.seconds * 1000).toLocaleDateString() : "Recently"}</p>
+                                        </div>
+                                    </div>
+                                </motion.div>
+                            ))
+                        )}
+                    </div>
+                </section>
             </div>
 
-            {
-                showReviewModal && (
+            <AnimatePresence>
+                {showReviewModal && (
                     <ReviewModal
                         restaurantId={restaurant.id}
                         onClose={() => setShowReviewModal(false)}
-                        onReviewAdded={fetchReviewsAndCheckPermission}
+                        onReviewAdded={() => {
+                            fetchReviewsAndCheckPermission();
+                            showToast("Review posted successfully!", "success");
+                        }}
                     />
-                )
-            }
+                )}
+                {selectedItemForCustomization && (
+                    <CustomizationModal
+                        item={selectedItemForCustomization}
+                        onClose={() => setSelectedItemForCustomization(null)}
+                        onAdd={(item, options, instructions) => {
+                            addToCart({ ...item, restaurantId: restaurant.id }, options, instructions);
+                            showToast(`${item.name} customized and added!`, 'success');
+                        }}
+                    />
+                )}
+            </AnimatePresence>
             <Footer />
-        </div >
+        </div>
     );
 }
