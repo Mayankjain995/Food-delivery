@@ -1,7 +1,38 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { db, auth } from '../firebaseConfig';
+import { doc, setDoc, deleteDoc, onSnapshot } from 'firebase/firestore';
 
 export default function RestaurantCard({ data }) {
+    const [isFavorite, setIsFavorite] = useState(false);
+    const userId = auth.currentUser?.uid;
+
+    useEffect(() => {
+        if (!userId) return;
+        const unsub = onSnapshot(doc(db, "users", userId, "favorites", data.id.toString()), (doc) => {
+            setIsFavorite(doc.exists());
+        });
+        return () => unsub();
+    }, [userId, data.id]);
+
+    const toggleFavorite = async (e) => {
+        e.preventDefault(); // Prevent Link navigation
+        if (!userId) {
+            alert("Please login to save favorites");
+            return;
+        }
+        const ref = doc(db, "users", userId, "favorites", data.id.toString());
+        if (isFavorite) {
+            await deleteDoc(ref);
+        } else {
+            await setDoc(ref, {
+                restaurantId: data.id,
+                name: data.name,
+                image: data.image,
+                addedAt: new Date().toISOString()
+            });
+        }
+    };
     return (
         <div className="h-full bg-white dark:bg-[#1e1e1e] rounded-2xl shadow-sm hover:shadow-xl transition-shadow duration-300 overflow-hidden border border-gray-100 dark:border-gray-800 flex flex-col">
             <div className="relative">
@@ -19,6 +50,15 @@ export default function RestaurantCard({ data }) {
                         Promoted
                     </div>
                 )}
+
+                <button
+                    onClick={toggleFavorite}
+                    className="absolute top-2 right-2 p-2 rounded-full bg-white/80 dark:bg-black/60 backdrop-blur-sm z-10 transition-transform hover:scale-110 active:scale-95"
+                >
+                    <span className={`text-xl leading-none ${isFavorite ? 'text-red-500' : 'text-gray-400 dark:text-gray-300'}`}>
+                        {isFavorite ? '❤️' : '🤍'}
+                    </span>
+                </button>
 
                 {data.offer && (
                     <div className="absolute bottom-4 left-0 bg-red-600 text-white px-3 py-1 text-xs font-bold rounded-r shadow-md">
@@ -56,6 +96,6 @@ export default function RestaurantCard({ data }) {
                     </Link>
                 </div>
             </div>
-        </div>
+        </div >
     );
 }

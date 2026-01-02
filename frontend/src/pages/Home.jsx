@@ -6,6 +6,7 @@ import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import HeroSection from '../components/HeroSection';
 import RestaurantCard from '../components/RestaurantCard';
+import LoadingSpinner from '../components/LoadingSpinner';
 import { restaurants, foodCategories } from '../data/restaurants';
 
 export default function Home() {
@@ -14,7 +15,19 @@ export default function Home() {
     const [filter, setFilter] = useState("All");
     const [selectedCategory, setSelectedCategory] = useState(null);
     const [searchParams] = useSearchParams();
+    const [debouncedSearch, setDebouncedSearch] = useState(searchParams.get('search') || '');
     const searchQuery = searchParams.get('search') || '';
+
+    // Advanced Filters State
+    const [priceFilter, setPriceFilter] = useState("all"); // low, mid, high, all
+    const [sortBy, setSortBy] = useState("default"); // rating, time, price
+
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setDebouncedSearch(searchQuery);
+        }, 300);
+        return () => clearTimeout(timer);
+    }, [searchQuery]);
 
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
@@ -27,21 +40,19 @@ export default function Home() {
     const getFilteredRestaurants = () => {
         let sorted = [...restaurants];
 
-        // Search Filter
-        if (searchQuery) {
-            const query = searchQuery.toLowerCase().replace(/\s+/g, ''); // Remove spaces for looser matching (e.g. icecream -> icecream)
+        // 1. Search Filter (using debounced value)
+        if (debouncedSearch) {
+            const query = debouncedSearch.toLowerCase().replace(/\s+/g, '');
 
             sorted = sorted.filter(r => {
                 const nameMatch = r.name.toLowerCase().replace(/\s+/g, '').includes(query);
                 const cuisineMatch = r.cuisines.some(c => c.toLowerCase().replace(/\s+/g, '').includes(query));
-
-                // Also check if any menu item matches the search query
                 const menuMatch = r.menu?.some(item => item.name.toLowerCase().replace(/\s+/g, '').includes(query));
-
                 return nameMatch || cuisineMatch || menuMatch;
             });
         }
 
+        // 2. Quick Filters
         if (filter === "Rating") {
             sorted = sorted.filter(r => r.rating >= 4.0);
         } else if (filter === "Fast") {
@@ -50,8 +61,29 @@ export default function Home() {
             sorted = sorted.filter(r => r.isVeg);
         }
 
+        // 3. Category Filter
         if (selectedCategory) {
             sorted = sorted.filter(r => r.cuisines.some(c => c.toLowerCase().includes(selectedCategory.toLowerCase())));
+        }
+
+        // 4. Price Filter
+        if (priceFilter !== "all") {
+            sorted = sorted.filter(r => {
+                const price = parseInt(r.priceForTwo.replace(/[^0-9]/g, ''));
+                if (priceFilter === "low") return price <= 300;
+                if (priceFilter === "mid") return price > 300 && price <= 600;
+                if (priceFilter === "high") return price > 600;
+                return true;
+            });
+        }
+
+        // 5. Sorting
+        if (sortBy === "rating") {
+            sorted.sort((a, b) => b.rating - a.rating);
+        } else if (sortBy === "time") {
+            sorted.sort((a, b) => parseInt(a.deliveryTime) - parseInt(b.deliveryTime));
+        } else if (sortBy === "price") {
+            sorted.sort((a, b) => parseInt(a.priceForTwo.replace(/[^0-9]/g, '')) - parseInt(b.priceForTwo.replace(/[^0-9]/g, '')));
         }
 
         return sorted;
@@ -60,11 +92,7 @@ export default function Home() {
     const filteredRestaurants = getFilteredRestaurants();
 
     if (loading) {
-        return (
-            <div className="min-h-screen flex items-center justify-center bg-[#121212] text-white">
-                <div className="animate-pulse text-xl">Loading...</div>
-            </div>
-        );
+        return <LoadingSpinner fullScreen={true} />;
     }
 
     const handleCategoryClick = (catName) => {
@@ -112,24 +140,51 @@ export default function Home() {
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
                         <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Top restaurants in your city</h2>
 
-                        <div className="flex flex-wrap gap-2">
-                            {["All", "Rating", "Fast", "Veg"].map(type => (
-                                <button
-                                    key={type}
-                                    onClick={() => setFilter(filter === type ? "All" : type)}
-                                    className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors border ${filter === type
-                                        ? 'bg-gray-800 text-white border-gray-800 dark:bg-white dark:text-black dark:border-white'
-                                        : 'bg-transparent text-gray-600 border-gray-300 hover:bg-gray-100 dark:text-gray-400 dark:border-gray-700 dark:hover:bg-gray-800'
-                                        }`}
-                                >
-                                    {type}
-                                </button>
-                            ))}
+                        <div className="flex flex-wrap gap-3 items-center">
+                            {/* Sorting */}
+                            <select
+                                value={sortBy}
+                                onChange={(e) => setSortBy(e.target.value)}
+                                className="bg-white dark:bg-[#1e1e1e] border border-gray-300 dark:border-gray-700 rounded-full px-4 py-1.5 text-sm font-medium focus:ring-2 focus:ring-red-500 focus:outline-none"
+                            >
+                                <option value="default">Sort By</option>
+                                <option value="rating">Rating: High to Low</option>
+                                <option value="time">Delivery Time</option>
+                                <option value="price">Price: Low to High</option>
+                            </select>
+
+                            {/* Price Filter */}
+                            <select
+                                value={priceFilter}
+                                onChange={(e) => setPriceFilter(e.target.value)}
+                                className="bg-white dark:bg-[#1e1e1e] border border-gray-300 dark:border-gray-700 rounded-full px-4 py-1.5 text-sm font-medium focus:ring-2 focus:ring-red-500 focus:outline-none"
+                            >
+                                <option value="all">Price for Two</option>
+                                <option value="low">Under ₹300</option>
+                                <option value="mid">₹300 - ₹600</option>
+                                <option value="high">Above ₹600</option>
+                            </select>
+
+                            {/* Quick Tags */}
+                            <div className="flex gap-2">
+                                {["Rating", "Fast", "Veg"].map(type => (
+                                    <button
+                                        key={type}
+                                        onClick={() => setFilter(filter === type ? "All" : type)}
+                                        className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors border ${filter === type
+                                            ? 'bg-red-500 text-white border-red-500'
+                                            : 'bg-transparent text-gray-600 border-gray-300 hover:bg-gray-100 dark:text-gray-400 dark:border-gray-700 dark:hover:bg-gray-800'
+                                            }`}
+                                    >
+                                        {type === "Rating" ? "Top Rated" : type === "Fast" ? "Fast Delivery" : "Pure Veg"}
+                                    </button>
+                                ))}
+                            </div>
                         </div>
                     </div>
 
                     {filteredRestaurants.length > 0 ? (
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 hover:shadow-2x1 transition:shadow-2x1">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                             {filteredRestaurants.map(restaurant => (
                                 <RestaurantCard key={restaurant.id} data={restaurant} />
                             ))}

@@ -12,8 +12,11 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Offers from "./pages/Offers";
 import Cart from "./pages/Cart";
+import Favorites from "./pages/Favorites";
 import Profile from "./pages/Profile";
+import OrderStatus from "./pages/OrderStatus";
 import RestaurantDetails from "./pages/RestaurantDetails";
+import LoadingSpinner from "./components/LoadingSpinner";
 
 export default function App() {
   const [user, setUser] = useState(null);
@@ -35,11 +38,7 @@ export default function App() {
   }, []);
 
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-white dark:bg-[#121212]">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-red-500"></div>
-      </div>
-    );
+    return <LoadingSpinner fullScreen={true} />;
   }
 
   if (!auth) {
@@ -65,7 +64,9 @@ export default function App() {
           <Route path="/" element={user ? <Home /> : <Navigate to="/login" />} />
           <Route path="/offers" element={user ? <Offers /> : <Navigate to="/login" />} />
           <Route path="/cart" element={user ? <Cart /> : <Navigate to="/login" />} />
+          <Route path="/favorites" element={user ? <Favorites /> : <Navigate to="/login" />} />
           <Route path="/profile" element={user ? <Profile user={user} /> : <Navigate to="/login" />} />
+          <Route path="/order-status/:id" element={user ? <OrderStatus /> : <Navigate to="/login" />} />
           <Route path="/restaurant/:id" element={user ? <RestaurantDetails /> : <Navigate to="/login" />} />
 
           <Route path="/about" element={<ComingSoon />} />

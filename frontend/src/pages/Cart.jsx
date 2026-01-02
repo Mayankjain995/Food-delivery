@@ -2,10 +2,15 @@ import React, { useState } from 'react';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import { useCart } from '../context/CartContext';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { collection, addDoc } from 'firebase/firestore';
+import { db, auth } from '../firebaseConfig';
+import { useToast } from '../context/ToastContext';
 
 export default function Cart() {
     const { cartItems, updateQuantity, clearCart } = useCart();
+    const navigate = useNavigate();
+    const { showToast } = useToast();
     const [couponCode, setCouponCode] = useState("");
     const [discount, setDiscount] = useState(0);
     const [couponMsg, setCouponMsg] = useState({ text: "", type: "" }); // type: success/error
@@ -58,40 +63,55 @@ export default function Cart() {
         }
     };
 
-    const handlePlaceOrder = () => {
+    const handlePlaceOrder = async () => {
         const itemNames = cartItems.map(i => `${i.name} (x${i.quantity})`).join(", ");
         const confirmPayment = window.confirm(`Proceed to pay ₹${toPay} for:\n${itemNames}?`);
 
         if (confirmPayment) {
-            // Mark NEWUSER50 as redeemed if used
-            if (couponCode.trim().toUpperCase() === "NEWUSER50" && discount > 0) {
-                localStorage.setItem('redeemed_NEWUSER50', 'true');
-            }
+            try {
+                // Mark NEWUSER50 as redeemed if used
+                if (couponCode.trim().toUpperCase() === "NEWUSER50" && discount > 0) {
+                    localStorage.setItem('redeemed_NEWUSER50', 'true');
+                }
 
-            // Save Order to History
-            const newOrder = {
-                id: Math.floor(100000 + Math.random() * 900000), // Random 6 digit ID
-                date: new Date().toISOString(),
-                items: cartItems,
-                total: toPay,
-                status: 'Delivered'
-            };
+                // Create Order Object
+                const newOrder = {
+                    date: new Date().toISOString(),
+                    items: cartItems,
+                    total: toPay,
+                    status: 'Order Placed',
+                    userId: auth.currentUser?.uid || 'guest',
+                    userEmail: auth.currentUser?.email || 'guest'
+                };
 
-            const existingHistory = JSON.parse(localStorage.getItem('orderHistory')) || [];
-            localStorage.setItem('orderHistory', JSON.stringify([...existingHistory, newOrder]));
+                // Simulator Gateway UI
+                const processing = window.open("", "_blank", "width=400,height=300");
+                processing.document.write(`<h2 style="font-family:sans-serif;text-align:center;margin-top:50px;">Connecting to Payment Gateway...</h2>`);
 
-            // Simulate Gateway
-            const processing = window.open("", "_blank", "width=400,height=300");
-            processing.document.write(`<h2 style="font-family:sans-serif;text-align:center;margin-top:50px;">Connecting to Payment Gateway...</h2>`);
+                // Simulate Network Delay
+                setTimeout(async () => {
+                    processing.document.body.innerHTML = `<h2 style="font-family:sans-serif;text-align:center;color:green;margin-top:50px;">Payment Successful!</h2><p style="text-align:center">Redirecting...</p>`;
 
-            setTimeout(() => {
-                processing.document.body.innerHTML = `<h2 style="font-family:sans-serif;text-align:center;color:green;margin-top:50px;">Payment Successful!</h2><p style="text-align:center">Redirecting...</p>`;
-                setTimeout(() => {
-                    processing.close();
-                    alert(`Order Placed Successfully!\n\nItems Ordered:\n${itemNames}`);
-                    clearCart();
+                    // Save to Firestore
+                    const docRef = await addDoc(collection(db, "orders"), newOrder);
+
+                    // Also save to local storage for Redundancy/Legacy support
+                    const localOrder = { ...newOrder, id: docRef.id };
+                    const existingHistory = JSON.parse(localStorage.getItem('orderHistory')) || [];
+                    localStorage.setItem('orderHistory', JSON.stringify([...existingHistory, localOrder]));
+
+                    setTimeout(() => {
+                        processing.close();
+                        clearCart();
+                        showToast("Order Placed Successfully!");
+                        navigate(`/order-status/${docRef.id}`);
+                    }, 1000);
                 }, 2000);
-            }, 2000);
+
+            } catch (error) {
+                console.error("Error creating order:", error);
+                showToast("Failed to place order", "error");
+            }
         }
     };
 

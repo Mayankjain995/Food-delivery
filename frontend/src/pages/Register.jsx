@@ -2,8 +2,10 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '../firebaseConfig';
+import { useToast } from '../context/ToastContext';
 
 export default function Register() {
+    const { showToast } = useToast();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
@@ -14,12 +16,12 @@ export default function Register() {
         setError('');
         try {
             await createUserWithEmailAndPassword(auth, email, password);
-            console.log('Register attempt successful:', email);
-            window.alert('Registered Successfully');
+            showToast("Account Created Successfully!");
             navigate('/login');
         } catch (error) {
             console.error("Error registering:", error);
             setError(error.message);
+            showToast("Registration Failed: " + error.code, "error");
         }
     };
 

@@ -4,21 +4,25 @@ import { signOut } from 'firebase/auth';
 import { auth } from '../firebaseConfig';
 import { useCart } from '../context/CartContext';
 import { useTheme } from '../context/ThemeContext';
+import { useToast } from '../context/ToastContext';
 
 export default function AppNavbar({ user }) {
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
     const { cartItems } = useCart();
     const { theme, toggleTheme } = useTheme();
+    const { showToast } = useToast();
     const totalItems = cartItems.reduce((sum, item) => sum + item.quantity, 0);
     const [searchTerm, setSearchTerm] = useState(searchParams.get('search') || '');
 
     const handleLogout = async () => {
         try {
             await signOut(auth);
+            showToast("Logged out successfully");
             navigate('/login');
         } catch (error) {
             console.error("Logout Error:", error);
+            showToast("Logout failed", "error");
         }
     };
 
@@ -81,6 +85,7 @@ export default function AppNavbar({ user }) {
                         {/* Navigation Links */}
                         <div className="hidden sm:flex items-center gap-6 font-medium">
                             <Link to="/" className="hover:text-red-500 transition-colors text-gray-700 dark:text-gray-200">Home</Link>
+                            <Link to="/favorites" className="hover:text-red-500 transition-colors text-gray-700 dark:text-gray-200">Favorites</Link>
                             <Link to="/offers" className="hover:text-red-500 transition-colors text-gray-700 dark:text-gray-200">Offers</Link>
                         </div>
 
