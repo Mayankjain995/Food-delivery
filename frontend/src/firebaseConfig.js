@@ -12,32 +12,20 @@ const firebaseConfig = {
 };
 
 let app;
-<<<<<<< HEAD
 let auth;
 let db;
 
 try {
-    // Check if API Key is present. If not, the app will show the "Configuration Error" screen (handled in App.jsx).
-    if (!firebaseConfig.apiKey) {
-        console.warn("Firebase Setup: Missing API Key. Application will run in limited mode or show error.");
-    } else {
-        app = initializeApp(firebaseConfig);
-        auth = getAuth(app);
-        db = getFirestore(app);
-    }
+  // Check if API Key is present. If not, the app will show the "Configuration Error" screen (handled in App.jsx).
+  if (!firebaseConfig.apiKey) {
+    console.warn("Firebase Setup: Missing API Key. Application will run in limited mode or show error.");
+  } else {
+    app = initializeApp(firebaseConfig);
+    auth = getAuth(app);
+    db = getFirestore(app);
+  }
 } catch (error) {
-    console.error("Firebase Initialization Failed:", error);
+  console.error("Firebase Initialization Failed:", error);
 }
 
 export { auth, db };
-=======
-
-try {
-  app = initializeApp(firebaseConfig);
-} catch (error) {
-  console.error("🔥 Firebase initialization failed:", error);
-}
-
-export const auth = app ? getAuth(app) : null;
-export const db = app ? getFirestore(app) : null;
->>>>>>> d8efc56531d9a17469a3d9893451e025cd67bd5b
