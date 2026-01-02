@@ -16,6 +16,11 @@ function App() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (!auth) {
+      console.error("Firebase Auth is not initialized.");
+      setLoading(false);
+      return;
+    }
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
       setLoading(false);
@@ -24,6 +29,18 @@ function App() {
   }, []);
 
   if (loading) return <div className="text-center p-5 text-white">Loading...</div>;
+
+  if (!auth) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-900 text-white p-4 text-center">
+        <div>
+          <h1 className="text-3xl font-bold text-red-500 mb-4">Configuration Error</h1>
+          <p className="mb-4">Firebase is not configured correctly.</p>
+          <p className="text-sm text-gray-400">Please ensure environment variables (VITE_FIREBASE_API_KEY, etc.) are set in your Vercel project settings.</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <Router>

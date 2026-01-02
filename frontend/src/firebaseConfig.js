@@ -11,7 +11,21 @@ const firebaseConfig = {
     appId: import.meta.env.VITE_FIREBASE_APP_ID,
 };
 
-const app = initializeApp(firebaseConfig);
+let app;
+let auth;
+let db;
 
-export const auth = getAuth(app);
-export const db = getFirestore(app);
+try {
+    // Check if API Key is present. If not, the app will show the "Configuration Error" screen (handled in App.jsx).
+    if (!firebaseConfig.apiKey) {
+        console.warn("Firebase Setup: Missing API Key. Application will run in limited mode or show error.");
+    } else {
+        app = initializeApp(firebaseConfig);
+        auth = getAuth(app);
+        db = getFirestore(app);
+    }
+} catch (error) {
+    console.error("Firebase Initialization Failed:", error);
+}
+
+export { auth, db };
