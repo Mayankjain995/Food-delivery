@@ -14,14 +14,8 @@ export default function RestaurantDetails() {
     const [vegOnly, setVegOnly] = useState(false);
     const [sortBy, setSortBy] = useState("default"); // default, high, low
 
-    // Mock Menu Data
-    const menuItems = [
-        { id: 101, name: "Special Chicken Biryani", price: "₹250", veg: false, image: "https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?w=200&q=80" },
-        { id: 102, name: "Paneer Butter Masala", price: "₹220", veg: true, image: "https://images.unsplash.com/photo-1565557623262-b51c2513a641?w=200&q=80" },
-        { id: 103, name: "Garlic Naan", price: "₹45", veg: true, image: "https://images.unsplash.com/photo-1601050690597-df0568f70950?w=200&q=80" },
-        { id: 104, name: "Tandoori Chicken (Half)", price: "₹300", veg: false, image: "https://images.unsplash.com/photo-1610057099443-fde8c4d50f91?w=200&q=80" },
-        { id: 105, name: "Chocolate Brownie", price: "₹120", veg: true, image: "https://images.unsplash.com/photo-1606313564200-e75d5e30476d?w=200&q=80" }
-    ];
+    // Use restaurant specific menu or empty array if not defined
+    const menuItems = restaurant?.menu || [];
 
     if (!restaurant) {
         return (
@@ -64,17 +58,17 @@ export default function RestaurantDetails() {
             <Navbar />
 
             {/* Header Section */}
-            <div className="bg-[#1e1e1e] py-12 border-b border-gray-800 text-white">
+            <div className="bg-white dark:bg-[#1e1e1e] py-12 border-b border-gray-200 dark:border-gray-800 text-gray-900 dark:text-white transition-colors duration-300">
                 <div className="max-w-7xl mx-auto px-6">
                     <h1 className="text-4xl md:text-5xl font-bold mb-3">{restaurant.name}</h1>
-                    <p className="text-gray-400 text-lg mb-4">{restaurant.cuisines.join(", ")}</p>
+                    <p className="text-gray-600 dark:text-gray-400 text-lg mb-4">{restaurant.cuisines.join(", ")}</p>
                     <div className="flex flex-wrap items-center gap-4 text-sm md:text-base">
                         <div className="bg-green-600 text-white px-3 py-1 rounded font-bold flex items-center gap-1">
                             <span>★</span> {restaurant.rating}
                         </div>
-                        <span className="text-gray-400 font-medium">{restaurant.deliveryTime}</span>
-                        <span className="text-gray-600">•</span>
-                        <span className="text-gray-400 font-medium">{restaurant.priceForTwo} for two</span>
+                        <span className="text-gray-500 dark:text-gray-400 font-medium">{restaurant.deliveryTime}</span>
+                        <span className="text-gray-400 dark:text-gray-600">•</span>
+                        <span className="text-gray-500 dark:text-gray-400 font-medium">{restaurant.priceForTwo} for two</span>
                     </div>
                 </div>
             </div>
@@ -89,8 +83,8 @@ export default function RestaurantDetails() {
                         <div
                             onClick={() => setVegOnly(!vegOnly)}
                             className={`flex items-center gap-2 px-4 py-2 rounded-full cursor-pointer select-none border transition-colors ${vegOnly
-                                    ? 'bg-green-50/10 border-green-500'
-                                    : 'bg-white dark:bg-[#2a2a2a] border-gray-300 dark:border-gray-700'
+                                ? 'bg-green-50/10 border-green-500'
+                                : 'bg-white dark:bg-[#2a2a2a] border-gray-300 dark:border-gray-700'
                                 }`}
                         >
                             <div className={`w-4 h-4 rounded-full border ${vegOnly ? 'bg-green-600 border-green-600' : 'bg-transparent border-gray-400'}`}></div>

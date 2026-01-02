@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { onAuthStateChanged } from 'firebase/auth';
+import { useSearchParams } from 'react-router-dom';
 import { auth } from '../firebaseConfig';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
@@ -12,6 +13,8 @@ export default function Home() {
     const [loading, setLoading] = useState(true);
     const [filter, setFilter] = useState("All");
     const [selectedCategory, setSelectedCategory] = useState(null);
+    const [searchParams] = useSearchParams();
+    const searchQuery = searchParams.get('search') || '';
 
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
@@ -23,6 +26,21 @@ export default function Home() {
 
     const getFilteredRestaurants = () => {
         let sorted = [...restaurants];
+
+        // Search Filter
+        if (searchQuery) {
+            const query = searchQuery.toLowerCase().replace(/\s+/g, ''); // Remove spaces for looser matching (e.g. icecream -> icecream)
+
+            sorted = sorted.filter(r => {
+                const nameMatch = r.name.toLowerCase().replace(/\s+/g, '').includes(query);
+                const cuisineMatch = r.cuisines.some(c => c.toLowerCase().replace(/\s+/g, '').includes(query));
+
+                // Also check if any menu item matches the search query
+                const menuMatch = r.menu?.some(item => item.name.toLowerCase().replace(/\s+/g, '').includes(query));
+
+                return nameMatch || cuisineMatch || menuMatch;
+            });
+        }
 
         if (filter === "Rating") {
             sorted = sorted.filter(r => r.rating >= 4.0);
@@ -90,7 +108,7 @@ export default function Home() {
                 </section>
 
                 {/* Restaurants Section */}
-                <section className="mb-16">
+                <section className="mb-16" id="restaurants">
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
                         <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Top restaurants in your city</h2>
 
@@ -100,8 +118,8 @@ export default function Home() {
                                     key={type}
                                     onClick={() => setFilter(filter === type ? "All" : type)}
                                     className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors border ${filter === type
-                                            ? 'bg-gray-800 text-white border-gray-800 dark:bg-white dark:text-black dark:border-white'
-                                            : 'bg-transparent text-gray-600 border-gray-300 hover:bg-gray-100 dark:text-gray-400 dark:border-gray-700 dark:hover:bg-gray-800'
+                                        ? 'bg-gray-800 text-white border-gray-800 dark:bg-white dark:text-black dark:border-white'
+                                        : 'bg-transparent text-gray-600 border-gray-300 hover:bg-gray-100 dark:text-gray-400 dark:border-gray-700 dark:hover:bg-gray-800'
                                         }`}
                                 >
                                     {type}

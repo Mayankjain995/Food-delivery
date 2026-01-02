@@ -16,7 +16,10 @@ export default function HeroSection() {
                         Get 50% OFF on your first order!
                     </div>
                     <div>
-                        <button className="px-8 py-3 bg-red-600 hover:bg-red-700 text-white text-lg font-bold rounded-full shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+                        <button
+                            onClick={() => document.getElementById('restaurants')?.scrollIntoView({ behavior: 'smooth' })}
+                            className="px-8 py-3 bg-red-600 hover:bg-red-700 text-white text-lg font-bold rounded-full shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
+                        >
                             Order Now
                         </button>
                     </div>

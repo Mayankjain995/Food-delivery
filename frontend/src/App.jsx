@@ -9,6 +9,7 @@ import Offers from './pages/Offers';
 import Cart from './pages/Cart';
 import RestaurantDetails from './pages/RestaurantDetails';
 import Profile from './pages/Profile';
+import ComingSoon from './pages/ComingSoon';
 
 function App() {
   const [user, setUser] = useState(null);
@@ -34,6 +35,18 @@ function App() {
         <Route path="/cart" element={user ? <Cart /> : <Navigate to="/login" />} />
         <Route path="/profile" element={user ? <Profile user={user} /> : <Navigate to="/login" />} />
         <Route path="/restaurant/:id" element={user ? <RestaurantDetails /> : <Navigate to="/login" />} />
+
+        {/* Placeholder Routes for Footer Links */}
+        <Route path="/about" element={<ComingSoon />} />
+        <Route path="/careers" element={<ComingSoon />} />
+        <Route path="/team" element={<ComingSoon />} />
+        <Route path="/blog" element={<ComingSoon />} />
+        <Route path="/help" element={<ComingSoon />} />
+        <Route path="/partner" element={<ComingSoon />} />
+        <Route path="/ride" element={<ComingSoon />} />
+        <Route path="/terms" element={<ComingSoon />} />
+        <Route path="/privacy" element={<ComingSoon />} />
+        <Route path="/cookie" element={<ComingSoon />} />
       </Routes>
     </Router>
   );
