@@ -1,16 +1,6 @@
-import React, { useEffect, useState } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { onAuthStateChanged } from 'firebase/auth';
-import { auth } from './firebaseConfig';
-import Login from './pages/Login';
-import Register from './pages/Register';
-import Home from './pages/Home';
-import Offers from './pages/Offers';
-import Cart from './pages/Cart';
-import RestaurantDetails from './pages/RestaurantDetails';
-import Profile from './pages/Profile';
-import ComingSoon from './pages/ComingSoon';
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 
+<<<<<<< HEAD
 function App() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -67,6 +57,23 @@ function App() {
       </Routes>
     </Router>
   );
+=======
+function Home() {
+  return <h2>Home Page</h2>;
+>>>>>>> d8efc56531d9a17469a3d9893451e025cd67bd5b
 }
 
-export default App;
+function Login() {
+  return <h2>Login Page</h2>;
+}
+
+export default function App() {
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/login" element={<Login />} />
+      </Routes>
+    </BrowserRouter>
+  );
+}
