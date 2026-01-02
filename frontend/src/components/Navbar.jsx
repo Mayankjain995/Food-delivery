@@ -1,12 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { signOut } from 'firebase/auth';
+import { signOut, onAuthStateChanged } from 'firebase/auth';
 import { auth } from '../firebaseConfig';
 import { useCart } from '../context/CartContext';
 import { useTheme } from '../context/ThemeContext';
 import { useToast } from '../context/ToastContext';
 
-export default function AppNavbar({ user }) {
+export default function AppNavbar({ user: propUser }) {
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
     const { cartItems } = useCart();
@@ -14,6 +14,21 @@ export default function AppNavbar({ user }) {
     const { showToast } = useToast();
     const totalItems = cartItems.reduce((sum, item) => sum + item.quantity, 0);
     const [searchTerm, setSearchTerm] = useState(searchParams.get('search') || '');
+    const [user, setUser] = useState(propUser || null);
+
+    useEffect(() => {
+        // Only run listener if propUser wasn't provided or we want to be safe
+        const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+            setUser(currentUser);
+        });
+        return () => unsubscribe();
+    }, []);
+
+    useEffect(() => {
+        if (propUser !== undefined) {
+            setUser(propUser);
+        }
+    }, [propUser]);
 
     const handleLogout = async () => {
         try {

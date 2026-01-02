@@ -57,7 +57,7 @@ export default function Footer() {
                 <div className="border-t border-gray-200 dark:border-gray-800 pt-8 flex flex-col md:flex-row justify-between items-center text-xs text-gray-500">
                     <p>&copy; {new Date().getFullYear()} FoodRun Technologies Pvt. Ltd. All rights reserved.</p>
                     <div className="flex gap-4 mt-4 md:mt-0">
-                        <span>Made with ❤️ in India</span>
+                        <span>made by Mayank Jain</span>
                     </div>
                 </div>
             </div>
